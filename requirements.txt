@@ -1,0 +1,114 @@
+# Johnson Controls - Sistema de Seguimiento Industrial
+# Dependencias de Python
+
+# Framework Web
+Flask==2.3.2
+Flask-CORS==4.0.0
+
+# Comunicación Serie
+pyserial==3.5
+
+# Manejo de archivos Excel
+openpyxl==3.1.2
+
+# Utilidades de datos
+python-dateutil==2.8.2
+
+# Testing (opcional)
+pytest==7.4.0
+pytest-cov==4.1.0
+
+# Desarrollo (opcional)
+black==23.7.0
+flake8==6.0.0
+mypy==1.4.1
+
+# Para empaquetado (opcional)
+wheel==0.40.0
+setuptools==68.0.0
+
+# Logging avanzado (opcional)
+colorlog==6.7.0
+
+# Para servicios en Windows (opcional)
+pywin32==306; sys_platform == "win32"
+
+# Para análisis de datos avanzado (opcional)
+numpy==1.24.3
+pandas==2.0.3
+
+# Para monitoreo del sistema (opcional)
+psutil==5.9.5
+
+# Para configuración avanzada (opcional)
+pydantic==1.10.12
+pyyaml==6.0.1
+
+# Para API documentation (opcional)
+flask-restx==1.1.0
+
+# Para websockets (futuro)
+Flask-SocketIO==5.3.4
+python-socketio==5.8.0
+
+# Para criptografía (si se necesita)
+cryptography==41.0.3
+
+# Para validación de datos
+marshmallow==3.20.1
+
+# Para caching (opcional)
+redis==4.6.0
+
+# Para base de datos SQLite avanzada (futuro)
+sqlalchemy==2.0.19
+
+# Para internacionalización (futuro)
+Flask-Babel==3.1.0
+
+# Para compresión de archivos
+zipfile38==0.0.3
+
+# Para procesamiento de imágenes (si se necesita)
+Pillow==10.0.0
+
+# Para generación de reportes PDF (futuro)
+reportlab==4.0.4
+
+# Para envío de emails (futuro)
+Flask-Mail==0.9.1
+
+# Para programación de tareas (futuro)
+APScheduler==3.10.1
+
+# Para validación de esquemas JSON
+jsonschema==4.18.4
+
+# Para trabajar con fechas y zonas horarias
+pytz==2023.3
+
+# Para requests HTTP (si se necesita comunicación externa)
+requests==2.31.0
+
+# Para generación de códigos de barras (futuro)
+python-barcode==0.14.0
+qrcode==7.4.2
+
+# Para métricas y monitoreo (futuro)
+prometheus-client==0.17.1
+
+# Para autenticación JWT (futuro)
+PyJWT==2.8.0
+
+# Para variables de entorno
+python-dotenv==1.0.0
+
+# Para procesamiento de archivos CSV robustamente
+chardet==5.1.0
+
+# Mínimas para funcionamiento básico:
+# Flask==2.3.2
+# Flask-CORS==4.0.0  
+# pyserial==3.5
+# openpyxl==3.1.2
+# python-dateutil==2.8.2

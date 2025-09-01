@@ -1,0 +1,252 @@
+{
+  "company_info": {
+    "name": "Johnson Controls International plc",
+    "division": "Building Solutions",
+    "plant_location": "Durango, México",
+    "plant_code": "JCI_MX_DGO_001",
+    "timezone": "America/Mexico_City",
+    "language": "es-MX"
+  },
+  
+  "manufacturing_config": {
+    "production_lines": {
+      "line_1": {
+        "name": "Línea HVAC Principal",
+        "capacity_per_hour": 25,
+        "operating_hours": {
+          "start": "06:00",
+          "end": "22:00"
+        },
+        "stages": [
+          {
+            "id": 1,
+            "name": "Soldadura",
+            "operator": "Lucero Martínez",
+            "employee_id": "JCI-OP-001",
+            "station_id": "WELD-ST-01",
+            "target_time_seconds": 90,
+            "quality_checks": ["visual_inspection", "weld_strength"]
+          },
+          {
+            "id": 2,
+            "name": "Pulido",
+            "operator": "Felipe Hernández",
+            "employee_id": "JCI-OP-002", 
+            "station_id": "SAND-ST-01",
+            "target_time_seconds": 75,
+            "quality_checks": ["surface_finish", "dimensional"]
+          },
+          {
+            "id": 3,
+            "name": "Presión",
+            "operator": "Fernando García",
+            "employee_id": "JCI-OP-003",
+            "station_id": "PRESS-ST-01",
+            "target_time_seconds": 60,
+            "quality_checks": ["pressure_test", "leak_test"]
+          },
+          {
+            "id": 4,
+            "name": "Control de Calidad",
+            "operator": "Inspector QC",
+            "employee_id": "JCI-QC-001",
+            "station_id": "QC-ST-01",
+            "target_time_seconds": 120,
+            "quality_checks": ["final_inspection", "electrical_test", "calibration"]
+          },
+          {
+            "id": 5,
+            "name": "Pintura",
+            "operator": "Acabados Finales",
+            "employee_id": "JCI-FIN-001",
+            "station_id": "PAINT-ST-01",
+            "target_time_seconds": 180,
+            "quality_checks": ["coating_thickness", "color_match", "finish_quality"]
+          },
+          {
+            "id": 6,
+            "name": "Empaque y Almacén",
+            "operator": "Almacén General",
+            "employee_id": "JCI-WH-001",
+            "station_id": "PACK-ST-01",
+            "target_time_seconds": 45,
+            "quality_checks": ["packaging_integrity", "labeling_accuracy"]
+          }
+        ]
+      }
+    }
+  },
+  
+  "product_families": {
+    "hvac_controllers": {
+      "family_name": "Controladores HVAC",
+      "prefix": "HVAC-CTL",
+      "typical_cycle_time": 570,
+      "quality_standards": {
+        "defect_rate_target": 0.5,
+        "first_pass_yield": 98.5,
+        "customer_requirements": "JCI-SPEC-HVAC-2024"
+      },
+      "products": [
+        {
+          "part_number": "HVAC-CTL-2024-001",
+          "name": "Controlador HVAC Inteligente",
+          "customer": "Ford Motor Company",
+          "target_cycle_time": 420,
+          "critical_to_quality": ["temperature_accuracy", "communication_protocol", "power_consumption"]
+        }
+      ]
+    },
+    
+    "battery_systems": {
+      "family_name": "Sistemas de Gestión de Batería",
+      "prefix": "BATT-SYS",
+      "typical_cycle_time": 480,
+      "quality_standards": {
+        "defect_rate_target": 0.3,
+        "first_pass_yield": 99.0,
+        "customer_requirements": "JCI-SPEC-BATT-2024"
+      },
+      "products": [
+        {
+          "part_number": "BATT-SYS-2024-002",
+          "name": "Sistema de Gestión de Batería",
+          "customer": "General Motors",
+          "target_cycle_time": 380,
+          "critical_to_quality": ["voltage_regulation", "thermal_management", "safety_systems"]
+        }
+      ]
+    },
+    
+    "interior_systems": {
+      "family_name": "Sistemas Interiores",
+      "prefix": "INT-SWT",
+      "typical_cycle_time": 360,
+      "quality_standards": {
+        "defect_rate_target": 0.8,
+        "first_pass_yield": 97.5,
+        "customer_requirements": "JCI-SPEC-INT-2024"
+      },
+      "products": [
+        {
+          "part_number": "INT-SWT-2024-003",
+          "name": "Switch Inteligente Interior",
+          "customer": "Stellantis",
+          "target_cycle_time": 300,
+          "critical_to_quality": ["tactile_feedback", "electrical_continuity", "durability"]
+        }
+      ]
+    }
+  },
+  
+  "quality_standards": {
+    "global_standards": {
+      "iso_9001": true,
+      "iatf_16949": true,
+      "iso_14001": true,
+      "ohsas_18001": true
+    },
+    
+    "jci_standards": {
+      "quality_system": "JCI-QS-2024",
+      "process_control": "JCI-PC-2024",
+      "supplier_quality": "JCI-SQ-2024"
+    },
+    
+    "kpi_targets": {
+      "oee": 85.0,
+      "first_pass_yield": 98.0,
+      "defect_rate_ppm": 500,
+      "customer_satisfaction": 95.0,
+      "on_time_delivery": 98.5
+    }
+  },
+  
+  "traceability": {
+    "enabled": true,
+    "tracking_level": "unit_level",
+    "data_retention_years": 7,
+    "regulatory_compliance": ["REACH", "RoHS", "WEEE"],
+    "barcode_format": "CODE128",
+    "serial_number_format": "JCIYYYYMMDDHHMMSSXXX"
+  },
+  
+  "integration": {
+    "erp_system": {
+      "type": "SAP",
+      "version": "S/4HANA",
+      "integration_method": "REST_API",
+      "sync_interval_minutes": 15
+    },
+    
+    "mes_system": {
+      "type": "Wonderware_MES",
+      "version": "4.2",
+      "integration_method": "OPC_UA",
+      "real_time_sync": true
+    },
+    
+    "scada_system": {
+      "type": "Wonderware_InTouch",
+      "version": "2020",
+      "data_collection_interval": 5
+    }
+  },
+  
+  "maintenance": {
+    "preventive_maintenance": {
+      "scanner_calibration_days": 30,
+      "system_backup_hours": 24,
+      "database_cleanup_days": 90
+    },
+    
+    "monitoring": {
+      "system_health_check_minutes": 5,
+      "performance_report_hours": 8,
+      "alert_escalation_minutes": 30
+    }
+  },
+  
+  "security": {
+    "authentication": {
+      "method": "Active_Directory",
+      "session_timeout_minutes": 60,
+      "password_complexity": true
+    },
+    
+    "data_protection": {
+      "encryption_at_rest": true,
+      "encryption_in_transit": true,
+      "backup_encryption": true
+    },
+    
+    "access_control": {
+      "role_based": true,
+      "audit_logging": true,
+      "approval_workflows": true
+    }
+  },
+  
+  "compliance": {
+    "data_privacy": {
+      "gdpr_compliant": true,
+      "data_retention_policy": true,
+      "consent_management": true
+    },
+    
+    "industrial": {
+      "osha_compliant": true,
+      "environmental_reporting": true,
+      "energy_management": true
+    }
+  },
+  
+  "localization": {
+    "currency": "MXN",
+    "date_format": "DD/MM/YYYY",
+    "time_format": "24_hour",
+    "decimal_separator": ".",
+    "thousands_separator": ",",
+    "measurement_units": "metric"
+  }
+}

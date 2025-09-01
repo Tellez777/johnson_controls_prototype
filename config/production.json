@@ -1,0 +1,45 @@
+{
+  "hardware": {
+    "serial_port": "COM3",
+    "baud_rate": 9600,
+    "scanner_model": "Zebra_DS3678",
+    "timeout": 0.5,
+    "retry_attempts": 5
+  },
+  "database": {
+    "excel_tracking_file": "SEGUIMIENTO_JCI_PRODUCCION.xlsx",
+    "excel_data_file": "DATOS_JCI_PRODUCCION.xlsx",
+    "json_state_file": "sistema_estado_prod.json",
+    "json_commands_file": "comandos_web_prod.json",
+    "backup_enabled": true,
+    "backup_interval": 180
+  },
+  "web": {
+    "host": "0.0.0.0",
+    "port": 8080,
+    "debug": false,
+    "auto_reload": false,
+    "cors_enabled": false,
+    "session_timeout": 7200
+  },
+  "johnson_controls": {
+    "plant_id": "JCI_MX_PROD_001",
+    "plant_name": "Johnson Controls Planta Durango",
+    "department": "Manufactura Industrial",
+    "shift_start": "06:00",
+    "shift_end": "22:00",
+    "quality_standards": {
+      "max_cycle_time": 300,
+      "quality_threshold": 98,
+      "alert_threshold": 90
+    }
+  },
+  "system": {
+    "environment": "production",
+    "log_level": "INFO",
+    "auto_update_interval": 5,
+    "data_retention_days": 90,
+    "enable_analytics": true,
+    "enable_notifications": true
+  }
+}

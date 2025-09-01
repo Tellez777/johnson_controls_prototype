@@ -1,0 +1,76 @@
+johnson_controls_prototype/
+├── 🚀 PUNTO DE ENTRADA
+│   ├── main.py                          # Sistema principal con todos los modos
+│   ├── safe_main.py                     # Versión robusta con manejo de errores
+│   ├── quick_start.py                   # Instalación y verificación automática
+│   └── setup_project.py                 # Configuración automática del proyecto
+│
+├── 🏗️ SCRIPTS DE EJECUCIÓN
+│   ├── run_scanner.py                   # Solo sistema de escaneo
+│   ├── run_web.py                       # Solo servidor web
+│   └── start_basic.py                   # Servidor web básico (fallback)
+│
+├── 📊 VALIDACIÓN Y TESTING
+│   ├── validate_system.py               # Validador completo del sistema
+│   ├── tests/test_system.py             # Pruebas unitarias básicas
+│   └── tests/__init__.py                # Inicialización de tests
+│
+├── 🛠️ CÓDIGO FUENTE (src/)
+│   ├── core/                           # 🎯 Lógica central
+│   │   ├── scanner_manager.py           # Gestor principal del escáner
+│   │   ├── product_manager.py           # Gestión de productos (placeholder)
+│   │   ├── stage_manager.py             # Gestión de etapas (placeholder)
+│   │   └── workflow_engine.py           # Motor de flujo (placeholder)
+│   │
+│   ├── hardware/                       # 🔌 Interfaces de hardware
+│   │   ├── serial_interface.py          # Comunicación serie genérica
+│   │   ├── zebra_scanner.py             # Interfaz específica Zebra DS3678
+│   │   └── hardware_manager.py          # Gestor general (placeholder)
+│   │
+│   ├── web/                            # 🌐 Aplicación web
+│   │   ├── app.py                       # Aplicación Flask principal
+│   │   └── api/                         # APIs REST organizadas
+│   │       ├── data_api.py              # API de datos del sistema
+│   │       ├── control_api.py           # API de control y comandos
+│   │       └── analytics_api.py         # API de métricas y analytics
+│   │
+│   ├── models/                         # 🏷️ Modelos de datos
+│   │   ├── product.py                   # Modelo completo de productos JCI
+│   │   ├── stage.py                     # Modelo de etapas (placeholder)
+│   │   └── analytics.py                 # Modelos analytics (placeholder)
+│   │
+│   ├── services/                       # 🔧 Servicios de aplicación
+│   │   ├── data_sync_service.py         # Sincronización JSON/Excel
+│   │   ├── analytics_service.py         # Análisis y métricas avanzadas
+│   │   └── notification_service.py      # Sistema de notificaciones
+│   │
+│   └── utils/                          # 🛠️ Utilidades centrales
+│       ├── config.py                    # Gestión centralizada de configuración
+│       ├── logger.py                    # Sistema de logging profesional
+│       └── validators.py                # Validaciones (placeholder)
+│
+├── ⚙️ CONFIGURACIÓN
+│   ├── development.json                 # Configuración de desarrollo
+│   ├── production.json                  # Configuración de producción
+│   └── johnson_controls.json            # Configuración específica JCI
+│
+├── 📊 DATOS
+│   ├── json/                           # Archivos JSON de estado
+│   ├── excel/                          # Archivos Excel de datos
+│   ├── logs/                           # Logs del sistema
+│   └── backup/                         # Respaldos automáticos
+│
+├── 🐳 CONTAINERIZACIÓN
+│   ├── Dockerfile                       # Imagen Docker del sistema
+│   ├── docker-compose.yml              # Orquestación de servicios
+│   └── .dockerignore                    # Exclusiones para Docker
+│
+├── 📋 DOCUMENTACIÓN
+│   ├── README.md                        # Documentación principal
+│   ├── GETTING_STARTED.md               # Guía de inicio rápido
+│   ├── ARCHITECTURE_COMPLETE.md         # Este archivo
+│   ├── requirements.txt                 # Dependencias Python
+│   └── .gitignore                       # Exclusiones de Git
+│
+└── 🎯 ARCHIVOS DE INICIALIZACIÓN
+    └── __init__.py files               # En todos los paquetes Python

@@ -1,0 +1,45 @@
+{
+  "hardware": {
+    "serial_port": "COM5",
+    "baud_rate": 9600,
+    "scanner_model": "Zebra_DS3678",
+    "timeout": 0.1,
+    "retry_attempts": 3
+  },
+  "database": {
+    "excel_tracking_file": "SEGUIMIENTO_JCI_PROYECTO.xlsx",
+    "excel_data_file": "DATOS_JCI_PROYECTO.xlsx",
+    "json_state_file": "sistema_estado.json",
+    "json_commands_file": "comandos_web.json",
+    "backup_enabled": true,
+    "backup_interval": 300
+  },
+  "web": {
+    "host": "0.0.0.0",
+    "port": 5000,
+    "debug": true,
+    "auto_reload": true,
+    "cors_enabled": true,
+    "session_timeout": 3600
+  },
+  "johnson_controls": {
+    "plant_id": "JCI_MX_DEV_001",
+    "plant_name": "Planta Durango - Desarrollo",
+    "department": "Manufactura - Testing",
+    "shift_start": "06:00",
+    "shift_end": "22:00",
+    "quality_standards": {
+      "max_cycle_time": 420,
+      "quality_threshold": 95,
+      "alert_threshold": 85
+    }
+  },
+  "system": {
+    "environment": "development",
+    "log_level": "DEBUG",
+    "auto_update_interval": 3,
+    "data_retention_days": 30,
+    "enable_analytics": true,
+    "enable_notifications": true
+  }
+}
