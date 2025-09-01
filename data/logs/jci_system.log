@@ -397,3 +397,350 @@
 [10:19:24] __main__             INFO     Aplicación Web detenida
 [10:19:24] __main__             INFO     Sistema apagado correctamente
 [10:19:24] __main__             INFO     ============================================================
+[12:28:00] src.utils.logger     INFO     Sistema de logging Johnson Controls inicializado
+[12:28:00] src.utils.logger     INFO     Nivel: INFO, Directorio: data\logs
+[12:28:00] __main__             INFO     ============================================================
+[12:28:00] __main__             INFO     JOHNSON CONTROLS - Sistema de Seguimiento Industrial
+[12:28:00] __main__             INFO     Version 2.0 - Arquitectura Modular
+[12:28:00] __main__             INFO     ============================================================
+[12:28:00] __main__             INFO     Inicializando sistema...
+[12:28:00] __main__             INFO     Planta: Planta Durango - Desarrollo (JCI_MX_DEV_001)
+[12:28:00] __main__             INFO     Departamento: Manufactura - Testing
+[12:28:00] __main__             INFO     Ambiente: development
+[12:28:00] __main__             INFO     Puerto Serie: COM5
+[12:28:00] __main__             INFO     Puerto Web: 5000
+[12:28:00] __main__             INFO     Modo: full
+[12:28:00] __main__             INFO     Directorios verificados/creados
+[12:28:00] src.services.data_sync_service INFO     Data Sync Service inicializado
+[12:28:00] src.services.analytics_service INFO     Analytics Service inicializado
+[12:28:00] src.services.notification_service INFO     Notification Service inicializado
+[12:28:00] src.core.scanner_manager INFO     Scanner Manager inicializado
+[12:28:00] src.core.scanner_manager INFO     Iniciando sistema de escaneo Johnson Controls...
+[12:28:00] src.services.data_sync_service INFO     Cargados 0 productos
+[12:28:00] src.core.scanner_manager INFO     Cargados 0 productos existentes
+[12:28:00] src.hardware.serial_interface INFO     Serial Interface inicializada para puerto COM5 @ 9600 baud
+[12:28:00] src.hardware.zebra_scanner INFO     Zebra Scanner DS3678 inicializado para puerto COM5
+[12:28:00] src.hardware.zebra_scanner INFO     Conectando a Zebra DS3678 en COM5...
+[12:28:00] src.hardware.serial_interface INFO     Conectando a puerto serie COM5...
+[12:28:00] src.hardware.serial_interface ERROR    Error de puerto serie: could not open port 'COM5': FileNotFoundError(2, 'El sistema no puede encontrar el archivo especificado.', None, 2)
+[12:28:00] src.hardware.zebra_scanner ERROR    Error conectando interface serie
+[12:28:00] src.core.scanner_manager WARNING  No se pudo conectar al escáner
+[12:28:00] src.core.scanner_manager WARNING  Hardware no disponible - Modo simulación activado
+[12:28:00] src.services.data_sync_service INFO     Estado inicial cargado correctamente
+[12:28:00] src.services.data_sync_service INFO     Verificación de integridad completada
+[12:28:00] src.services.data_sync_service INFO     Data Sync Service inicializado correctamente
+[12:28:00] src.services.analytics_service INFO     Datos históricos cargados (simulado)
+[12:28:00] src.services.analytics_service INFO     Analytics Service inicializado correctamente
+[12:28:00] src.services.notification_service INFO     Notification Service inicializado correctamente
+[12:28:00] src.core.scanner_manager INFO     Iniciando bucle de lectura del escáner
+[12:28:00] src.core.scanner_manager INFO     Hilo de lectura del escáner iniciado
+[12:28:00] src.core.scanner_manager INFO     Iniciando bucle de procesamiento de comandos
+[12:28:00] src.core.scanner_manager INFO     Hilo de procesamiento de comandos iniciado
+[12:28:00] src.core.scanner_manager INFO     Sistema de escaneo inicializado correctamente
+[12:28:00] src.web.app          INFO     Web Application inicializada
+[12:28:00] src.web.app          INFO     APIs registradas: data, control, analytics
+[12:28:00] src.web.app          INFO     Web Application configurada correctamente
+[12:28:00] src.services.analytics_service INFO     Analytics Service inicializado
+[12:28:00] src.services.analytics_service INFO     Datos históricos cargados (simulado)
+[12:28:00] src.services.analytics_service INFO     Analytics Service inicializado correctamente
+[12:28:00] __main__             INFO     Sistema inicializado correctamente
+[12:28:00] __main__             INFO     Iniciando sistema en modo: full
+[12:28:00] __main__             INFO     Scanner Manager: Activo
+[12:28:00] src.web.app          INFO     Iniciando servidor web en puerto 5000
+[12:28:00] src.web.app          INFO     Servidor web iniciado
+[12:28:00] __main__             INFO     Aplicación Web: http://localhost:5000
+[12:28:00] src.services.analytics_service INFO     Iniciando bucle de analytics
+[12:28:00] src.services.analytics_service INFO     Analytics Service iniciado
+[12:28:00] src.services.analytics_service WARNING  ALERTA HIGH: Eficiencia baja: 47.0%
+[12:28:00] __main__             INFO     Servicio de Analytics: Activo
+[12:28:00] src.services.analytics_service WARNING  ALERTA MEDIUM: OEE bajo: 44.7%
+[12:28:00] __main__             INFO     Sistema completo en ejecución...
+[12:28:00] __main__             INFO     Presiona Ctrl+C para detener
+[12:28:30] src.services.analytics_service WARNING  ALERTA HIGH: Eficiencia baja: 47.0%
+[12:28:30] src.services.analytics_service WARNING  ALERTA MEDIUM: OEE bajo: 44.7%
+[12:29:00] src.services.analytics_service WARNING  ALERTA HIGH: Eficiencia baja: 47.0%
+[12:29:00] src.services.analytics_service WARNING  ALERTA MEDIUM: OEE bajo: 44.7%
+[12:29:30] src.services.analytics_service WARNING  ALERTA HIGH: Eficiencia baja: 47.0%
+[12:29:30] src.services.analytics_service WARNING  ALERTA MEDIUM: OEE bajo: 44.7%
+[12:30:00] src.services.analytics_service WARNING  ALERTA HIGH: Eficiencia baja: 47.0%
+[12:30:00] src.services.analytics_service WARNING  ALERTA MEDIUM: OEE bajo: 44.7%
+[12:30:30] src.services.analytics_service WARNING  ALERTA HIGH: Eficiencia baja: 47.0%
+[12:30:30] src.services.analytics_service WARNING  ALERTA MEDIUM: OEE bajo: 44.7%
+[12:31:00] src.services.analytics_service WARNING  ALERTA HIGH: Eficiencia baja: 47.0%
+[12:31:00] src.services.analytics_service WARNING  ALERTA MEDIUM: OEE bajo: 44.7%
+[12:31:30] src.services.analytics_service WARNING  ALERTA HIGH: Eficiencia baja: 47.0%
+[12:31:30] src.services.analytics_service WARNING  ALERTA MEDIUM: OEE bajo: 44.7%
+[12:32:00] src.services.analytics_service WARNING  ALERTA HIGH: Eficiencia baja: 47.0%
+[12:32:00] src.services.analytics_service WARNING  ALERTA MEDIUM: OEE bajo: 44.7%
+[12:32:30] src.services.analytics_service WARNING  ALERTA HIGH: Eficiencia baja: 47.0%
+[12:32:30] src.services.analytics_service WARNING  ALERTA MEDIUM: OEE bajo: 44.7%
+[12:33:00] src.services.analytics_service WARNING  ALERTA HIGH: Eficiencia baja: 47.0%
+[12:33:00] src.services.analytics_service WARNING  ALERTA MEDIUM: OEE bajo: 44.7%
+[12:33:30] src.services.analytics_service WARNING  ALERTA HIGH: Eficiencia baja: 47.0%
+[12:33:30] src.services.analytics_service WARNING  ALERTA MEDIUM: OEE bajo: 44.7%
+[12:34:00] src.services.analytics_service WARNING  ALERTA HIGH: Eficiencia baja: 47.0%
+[12:34:00] src.services.analytics_service WARNING  ALERTA MEDIUM: OEE bajo: 44.7%
+[12:34:30] src.services.analytics_service WARNING  ALERTA HIGH: Eficiencia baja: 47.0%
+[12:34:30] src.services.analytics_service WARNING  ALERTA MEDIUM: OEE bajo: 44.7%
+[12:35:00] src.services.analytics_service WARNING  ALERTA HIGH: Eficiencia baja: 47.0%
+[12:35:00] src.services.analytics_service WARNING  ALERTA MEDIUM: OEE bajo: 44.7%
+[12:35:30] src.services.analytics_service WARNING  ALERTA HIGH: Eficiencia baja: 47.0%
+[12:35:30] src.services.analytics_service WARNING  ALERTA MEDIUM: OEE bajo: 44.7%
+[12:36:00] src.services.analytics_service WARNING  ALERTA HIGH: Eficiencia baja: 47.0%
+[12:36:00] src.services.analytics_service WARNING  ALERTA MEDIUM: OEE bajo: 44.7%
+[12:36:04] __main__             INFO     Señal recibida: 2
+[12:36:05] __main__             INFO     Iniciando apagado del sistema...
+[12:36:05] src.core.scanner_manager INFO     Iniciando apagado del sistema...
+[12:36:05] src.hardware.zebra_scanner INFO     Desconectando Zebra DS3678...
+[12:36:05] src.hardware.serial_interface INFO     Desconectando de puerto serie COM5...
+[12:36:05] src.hardware.serial_interface INFO     Desconectado exitosamente
+[12:36:05] src.hardware.zebra_scanner INFO     Zebra DS3678 desconectado
+[12:36:05] src.core.scanner_manager INFO     Bucle de lectura del escáner terminado
+[12:36:06] src.core.scanner_manager INFO     Bucle de procesamiento de comandos terminado
+[12:36:06] src.core.scanner_manager INFO     Sistema apagado correctamente
+[12:36:06] __main__             INFO     Scanner Manager detenido
+[12:36:11] src.services.analytics_service INFO     Analytics Service detenido
+[12:36:11] __main__             INFO     Servicio de Analytics detenido
+[12:36:11] src.web.app          INFO     Servidor web detenido
+[12:36:11] __main__             INFO     Aplicación Web detenida
+[12:36:11] __main__             INFO     Sistema apagado correctamente
+[12:36:11] __main__             INFO     ============================================================
+[13:38:19] src.utils.logger     INFO     Sistema de logging Johnson Controls inicializado
+[13:38:19] src.utils.logger     INFO     Nivel: INFO, Directorio: data\logs
+[13:38:19] __main__             INFO     ============================================================
+[13:38:19] __main__             INFO     JOHNSON CONTROLS - Sistema de Seguimiento Industrial
+[13:38:19] __main__             INFO     Version 2.0 - Arquitectura Modular
+[13:38:19] __main__             INFO     ============================================================
+[13:38:19] __main__             INFO     Inicializando sistema...
+[13:38:19] __main__             INFO     Planta: Planta Durango - Desarrollo (JCI_MX_DEV_001)
+[13:38:19] __main__             INFO     Departamento: Manufactura - Testing
+[13:38:19] __main__             INFO     Ambiente: development
+[13:38:19] __main__             INFO     Puerto Serie: COM5
+[13:38:19] __main__             INFO     Puerto Web: 5000
+[13:38:19] __main__             INFO     Modo: full
+[13:38:19] __main__             INFO     Directorios verificados/creados
+[13:38:19] src.services.data_sync_service INFO     Data Sync Service inicializado
+[13:38:19] src.services.analytics_service INFO     Analytics Service inicializado
+[13:38:19] src.services.notification_service INFO     Notification Service inicializado
+[13:38:19] src.core.scanner_manager INFO     Scanner Manager inicializado
+[13:38:19] src.core.scanner_manager INFO     Iniciando sistema de escaneo Johnson Controls...
+[13:38:19] src.services.data_sync_service INFO     Cargados 0 productos
+[13:38:19] src.core.scanner_manager INFO     Cargados 0 productos existentes
+[13:38:19] src.hardware.serial_interface INFO     Serial Interface inicializada para puerto COM5 @ 9600 baud
+[13:38:19] src.hardware.zebra_scanner INFO     Zebra Scanner DS3678 inicializado para puerto COM5
+[13:38:19] src.hardware.zebra_scanner INFO     Conectando a Zebra DS3678 en COM5...
+[13:38:19] src.hardware.serial_interface INFO     Conectando a puerto serie COM5...
+[13:38:19] src.hardware.serial_interface ERROR    Error de puerto serie: could not open port 'COM5': FileNotFoundError(2, 'El sistema no puede encontrar el archivo especificado.', None, 2)
+[13:38:19] src.hardware.zebra_scanner ERROR    Error conectando interface serie
+[13:38:19] src.core.scanner_manager WARNING  No se pudo conectar al escáner
+[13:38:19] src.core.scanner_manager WARNING  Hardware no disponible - Modo simulación activado
+[13:38:19] src.services.data_sync_service INFO     Estado inicial cargado correctamente
+[13:38:19] src.services.data_sync_service INFO     Verificación de integridad completada
+[13:38:19] src.services.data_sync_service INFO     Data Sync Service inicializado correctamente
+[13:38:19] src.services.analytics_service INFO     Datos históricos cargados (simulado)
+[13:38:19] src.services.analytics_service INFO     Analytics Service inicializado correctamente
+[13:38:19] src.services.notification_service INFO     Notification Service inicializado correctamente
+[13:38:19] src.core.scanner_manager INFO     Iniciando bucle de lectura del escáner
+[13:38:19] src.core.scanner_manager INFO     Hilo de lectura del escáner iniciado
+[13:38:19] src.core.scanner_manager INFO     Iniciando bucle de procesamiento de comandos
+[13:38:19] src.core.scanner_manager INFO     Hilo de procesamiento de comandos iniciado
+[13:38:19] src.core.scanner_manager INFO     Sistema de escaneo inicializado correctamente
+[13:38:19] src.web.app          INFO     Web Application inicializada con archivos estáticos
+[13:38:19] src.web.app          INFO     APIs registradas: data, control, analytics
+[13:38:19] src.web.app          INFO     Web Application configurada correctamente
+[13:38:19] src.services.analytics_service INFO     Analytics Service inicializado
+[13:38:19] src.services.analytics_service INFO     Datos históricos cargados (simulado)
+[13:38:19] src.services.analytics_service INFO     Analytics Service inicializado correctamente
+[13:38:19] __main__             INFO     Sistema inicializado correctamente
+[13:38:19] __main__             INFO     Iniciando sistema en modo: full
+[13:38:19] __main__             INFO     Scanner Manager: Activo
+[13:38:19] src.web.app          INFO     Iniciando servidor web en puerto 5000
+[13:38:19] src.web.app          INFO     Servidor web iniciado
+[13:38:19] __main__             INFO     Aplicación Web: http://localhost:5000
+[13:38:19] src.services.analytics_service INFO     Iniciando bucle de analytics
+[13:38:19] src.services.analytics_service INFO     Analytics Service iniciado
+[13:38:19] src.services.analytics_service WARNING  ALERTA HIGH: Eficiencia baja: 47.0%
+[13:38:19] __main__             INFO     Servicio de Analytics: Activo
+[13:38:19] src.services.analytics_service WARNING  ALERTA MEDIUM: OEE bajo: 44.7%
+[13:38:19] __main__             INFO     Sistema completo en ejecución...
+[13:38:19] __main__             INFO     Presiona Ctrl+C para detener
+[13:38:19] src.web.app          ERROR    Error iniciando servidor web: signal only works in main thread of the main interpreter
+[13:38:49] src.services.analytics_service WARNING  ALERTA HIGH: Eficiencia baja: 47.0%
+[13:38:49] src.services.analytics_service WARNING  ALERTA MEDIUM: OEE bajo: 44.7%
+[13:39:19] src.services.analytics_service WARNING  ALERTA HIGH: Eficiencia baja: 47.0%
+[13:39:19] src.services.analytics_service WARNING  ALERTA MEDIUM: OEE bajo: 44.7%
+[13:39:38] __main__             INFO     Señal recibida: 2
+[13:39:39] __main__             INFO     Iniciando apagado del sistema...
+[13:39:39] src.core.scanner_manager INFO     Iniciando apagado del sistema...
+[13:39:39] src.hardware.zebra_scanner INFO     Desconectando Zebra DS3678...
+[13:39:39] src.hardware.serial_interface INFO     Desconectando de puerto serie COM5...
+[13:39:39] src.hardware.serial_interface INFO     Desconectado exitosamente
+[13:39:39] src.hardware.zebra_scanner INFO     Zebra DS3678 desconectado
+[13:39:39] src.core.scanner_manager INFO     Bucle de lectura del escáner terminado
+[13:39:39] src.core.scanner_manager INFO     Bucle de procesamiento de comandos terminado
+[13:39:39] src.core.scanner_manager INFO     Sistema apagado correctamente
+[13:39:39] __main__             INFO     Scanner Manager detenido
+[13:39:44] src.services.analytics_service INFO     Analytics Service detenido
+[13:39:44] __main__             INFO     Servicio de Analytics detenido
+[13:39:44] src.web.app          INFO     Servidor web detenido
+[13:39:44] __main__             INFO     Aplicación Web detenida
+[13:39:44] __main__             INFO     Sistema apagado correctamente
+[13:39:44] __main__             INFO     ============================================================
+[13:39:48] src.utils.logger     INFO     Sistema de logging Johnson Controls inicializado
+[13:39:48] src.utils.logger     INFO     Nivel: INFO, Directorio: data\logs
+[13:39:48] __main__             INFO     ============================================================
+[13:39:48] __main__             INFO     JOHNSON CONTROLS - Sistema de Seguimiento Industrial
+[13:39:48] __main__             INFO     Version 2.0 - Arquitectura Modular
+[13:39:48] __main__             INFO     ============================================================
+[13:39:48] __main__             INFO     Inicializando sistema...
+[13:39:48] __main__             INFO     Planta: Planta Durango - Desarrollo (JCI_MX_DEV_001)
+[13:39:48] __main__             INFO     Departamento: Manufactura - Testing
+[13:39:48] __main__             INFO     Ambiente: development
+[13:39:48] __main__             INFO     Puerto Serie: COM5
+[13:39:48] __main__             INFO     Puerto Web: 5000
+[13:39:48] __main__             INFO     Modo: full
+[13:39:48] __main__             INFO     Directorios verificados/creados
+[13:39:48] src.services.data_sync_service INFO     Data Sync Service inicializado
+[13:39:48] src.services.analytics_service INFO     Analytics Service inicializado
+[13:39:48] src.services.notification_service INFO     Notification Service inicializado
+[13:39:48] src.core.scanner_manager INFO     Scanner Manager inicializado
+[13:39:48] src.core.scanner_manager INFO     Iniciando sistema de escaneo Johnson Controls...
+[13:39:48] src.services.data_sync_service INFO     Cargados 0 productos
+[13:39:48] src.core.scanner_manager INFO     Cargados 0 productos existentes
+[13:39:48] src.hardware.serial_interface INFO     Serial Interface inicializada para puerto COM5 @ 9600 baud
+[13:39:48] src.hardware.zebra_scanner INFO     Zebra Scanner DS3678 inicializado para puerto COM5
+[13:39:48] src.hardware.zebra_scanner INFO     Conectando a Zebra DS3678 en COM5...
+[13:39:48] src.hardware.serial_interface INFO     Conectando a puerto serie COM5...
+[13:39:48] src.hardware.serial_interface ERROR    Error de puerto serie: could not open port 'COM5': FileNotFoundError(2, 'El sistema no puede encontrar el archivo especificado.', None, 2)
+[13:39:48] src.hardware.zebra_scanner ERROR    Error conectando interface serie
+[13:39:48] src.core.scanner_manager WARNING  No se pudo conectar al escáner
+[13:39:48] src.core.scanner_manager WARNING  Hardware no disponible - Modo simulación activado
+[13:39:48] src.services.data_sync_service INFO     Estado inicial cargado correctamente
+[13:39:48] src.services.data_sync_service INFO     Verificación de integridad completada
+[13:39:48] src.services.data_sync_service INFO     Data Sync Service inicializado correctamente
+[13:39:48] src.services.analytics_service INFO     Datos históricos cargados (simulado)
+[13:39:48] src.services.analytics_service INFO     Analytics Service inicializado correctamente
+[13:39:48] src.services.notification_service INFO     Notification Service inicializado correctamente
+[13:39:48] src.core.scanner_manager INFO     Iniciando bucle de lectura del escáner
+[13:39:48] src.core.scanner_manager INFO     Hilo de lectura del escáner iniciado
+[13:39:48] src.core.scanner_manager INFO     Iniciando bucle de procesamiento de comandos
+[13:39:48] src.core.scanner_manager INFO     Hilo de procesamiento de comandos iniciado
+[13:39:48] src.core.scanner_manager INFO     Sistema de escaneo inicializado correctamente
+[13:39:48] src.web.app          INFO     Web Application inicializada con archivos estáticos
+[13:39:48] src.web.app          INFO     APIs registradas: data, control, analytics
+[13:39:48] src.web.app          INFO     Web Application configurada correctamente
+[13:39:48] src.services.analytics_service INFO     Analytics Service inicializado
+[13:39:48] src.services.analytics_service INFO     Datos históricos cargados (simulado)
+[13:39:48] src.services.analytics_service INFO     Analytics Service inicializado correctamente
+[13:39:48] __main__             INFO     Sistema inicializado correctamente
+[13:39:48] __main__             INFO     Iniciando sistema en modo: full
+[13:39:48] __main__             INFO     Scanner Manager: Activo
+[13:39:48] src.web.app          INFO     Iniciando servidor web en puerto 5000
+[13:39:48] src.web.app          INFO     Servidor web iniciado
+[13:39:48] __main__             INFO     Aplicación Web: http://localhost:5000
+[13:39:48] src.services.analytics_service INFO     Iniciando bucle de analytics
+[13:39:48] src.services.analytics_service INFO     Analytics Service iniciado
+[13:39:48] src.services.analytics_service WARNING  ALERTA HIGH: Eficiencia baja: 47.0%
+[13:39:48] __main__             INFO     Servicio de Analytics: Activo
+[13:39:48] src.services.analytics_service WARNING  ALERTA MEDIUM: OEE bajo: 44.7%
+[13:39:48] __main__             INFO     Sistema completo en ejecución...
+[13:39:48] __main__             INFO     Presiona Ctrl+C para detener
+[13:40:13] __main__             INFO     Señal recibida: 2
+[13:40:13] __main__             INFO     Iniciando apagado del sistema...
+[13:40:13] src.core.scanner_manager INFO     Iniciando apagado del sistema...
+[13:40:13] src.hardware.zebra_scanner INFO     Desconectando Zebra DS3678...
+[13:40:13] src.hardware.serial_interface INFO     Desconectando de puerto serie COM5...
+[13:40:13] src.hardware.serial_interface INFO     Desconectado exitosamente
+[13:40:13] src.hardware.zebra_scanner INFO     Zebra DS3678 desconectado
+[13:40:13] src.core.scanner_manager INFO     Bucle de lectura del escáner terminado
+[13:40:13] src.core.scanner_manager INFO     Bucle de procesamiento de comandos terminado
+[13:40:13] src.core.scanner_manager INFO     Sistema apagado correctamente
+[13:40:13] __main__             INFO     Scanner Manager detenido
+[13:40:18] src.services.analytics_service INFO     Bucle de analytics terminado
+[13:40:18] src.services.analytics_service INFO     Analytics Service detenido
+[13:40:18] __main__             INFO     Servicio de Analytics detenido
+[13:40:18] src.web.app          INFO     Servidor web detenido
+[13:40:18] __main__             INFO     Aplicación Web detenida
+[13:40:18] __main__             INFO     Sistema apagado correctamente
+[13:40:18] __main__             INFO     ============================================================
+[13:40:22] src.utils.logger     INFO     Sistema de logging Johnson Controls inicializado
+[13:40:22] src.utils.logger     INFO     Nivel: INFO, Directorio: data\logs
+[13:40:22] __main__             INFO     ============================================================
+[13:40:22] __main__             INFO     JOHNSON CONTROLS - Sistema de Seguimiento Industrial
+[13:40:22] __main__             INFO     Version 2.0 - Arquitectura Modular
+[13:40:22] __main__             INFO     ============================================================
+[13:40:22] __main__             INFO     Inicializando sistema...
+[13:40:22] __main__             INFO     Planta: Planta Durango - Desarrollo (JCI_MX_DEV_001)
+[13:40:22] __main__             INFO     Departamento: Manufactura - Testing
+[13:40:22] __main__             INFO     Ambiente: development
+[13:40:22] __main__             INFO     Puerto Serie: COM5
+[13:40:22] __main__             INFO     Puerto Web: 5000
+[13:40:22] __main__             INFO     Modo: full
+[13:40:22] __main__             INFO     Directorios verificados/creados
+[13:40:22] src.services.data_sync_service INFO     Data Sync Service inicializado
+[13:40:22] src.services.analytics_service INFO     Analytics Service inicializado
+[13:40:22] src.services.notification_service INFO     Notification Service inicializado
+[13:40:22] src.core.scanner_manager INFO     Scanner Manager inicializado
+[13:40:22] src.core.scanner_manager INFO     Iniciando sistema de escaneo Johnson Controls...
+[13:40:22] src.services.data_sync_service INFO     Cargados 0 productos
+[13:40:22] src.core.scanner_manager INFO     Cargados 0 productos existentes
+[13:40:22] src.hardware.serial_interface INFO     Serial Interface inicializada para puerto COM5 @ 9600 baud
+[13:40:22] src.hardware.zebra_scanner INFO     Zebra Scanner DS3678 inicializado para puerto COM5
+[13:40:22] src.hardware.zebra_scanner INFO     Conectando a Zebra DS3678 en COM5...
+[13:40:22] src.hardware.serial_interface INFO     Conectando a puerto serie COM5...
+[13:40:22] src.hardware.serial_interface ERROR    Error de puerto serie: could not open port 'COM5': FileNotFoundError(2, 'El sistema no puede encontrar el archivo especificado.', None, 2)
+[13:40:22] src.hardware.zebra_scanner ERROR    Error conectando interface serie
+[13:40:22] src.core.scanner_manager WARNING  No se pudo conectar al escáner
+[13:40:22] src.core.scanner_manager WARNING  Hardware no disponible - Modo simulación activado
+[13:40:22] src.services.data_sync_service INFO     Estado inicial cargado correctamente
+[13:40:22] src.services.data_sync_service INFO     Verificación de integridad completada
+[13:40:22] src.services.data_sync_service INFO     Data Sync Service inicializado correctamente
+[13:40:22] src.services.analytics_service INFO     Datos históricos cargados (simulado)
+[13:40:22] src.services.analytics_service INFO     Analytics Service inicializado correctamente
+[13:40:22] src.services.notification_service INFO     Notification Service inicializado correctamente
+[13:40:22] src.core.scanner_manager INFO     Iniciando bucle de lectura del escáner
+[13:40:22] src.core.scanner_manager INFO     Hilo de lectura del escáner iniciado
+[13:40:22] src.core.scanner_manager INFO     Iniciando bucle de procesamiento de comandos
+[13:40:22] src.core.scanner_manager INFO     Hilo de procesamiento de comandos iniciado
+[13:40:22] src.core.scanner_manager INFO     Sistema de escaneo inicializado correctamente
+[13:40:22] src.web.app          INFO     Web Application inicializada con archivos estáticos
+[13:40:22] src.web.app          INFO     APIs registradas: data, control, analytics
+[13:40:22] src.web.app          INFO     Web Application configurada correctamente
+[13:40:22] src.services.analytics_service INFO     Analytics Service inicializado
+[13:40:22] src.services.analytics_service INFO     Datos históricos cargados (simulado)
+[13:40:22] src.services.analytics_service INFO     Analytics Service inicializado correctamente
+[13:40:22] __main__             INFO     Sistema inicializado correctamente
+[13:40:22] __main__             INFO     Iniciando sistema en modo: full
+[13:40:22] __main__             INFO     Scanner Manager: Activo
+[13:40:22] src.web.app          INFO     Iniciando servidor web en puerto 5000
+[13:40:22] src.web.app          INFO     Servidor web iniciado
+[13:40:22] __main__             INFO     Aplicación Web: http://localhost:5000
+[13:40:22] src.services.analytics_service INFO     Iniciando bucle de analytics
+[13:40:22] src.services.analytics_service INFO     Analytics Service iniciado
+[13:40:22] src.services.analytics_service WARNING  ALERTA HIGH: Eficiencia baja: 47.0%
+[13:40:22] __main__             INFO     Servicio de Analytics: Activo
+[13:40:22] src.services.analytics_service WARNING  ALERTA MEDIUM: OEE bajo: 44.7%
+[13:40:22] __main__             INFO     Sistema completo en ejecución...
+[13:40:22] __main__             INFO     Presiona Ctrl+C para detener
+[13:40:52] src.services.analytics_service WARNING  ALERTA HIGH: Eficiencia baja: 47.0%
+[13:40:52] src.services.analytics_service WARNING  ALERTA MEDIUM: OEE bajo: 44.7%
+[13:41:22] src.services.analytics_service WARNING  ALERTA HIGH: Eficiencia baja: 47.0%
+[13:41:22] src.services.analytics_service WARNING  ALERTA MEDIUM: OEE bajo: 44.7%
+[13:41:44] __main__             INFO     Señal recibida: 2
+[13:41:47] __main__             INFO     Iniciando apagado del sistema...
+[13:41:47] src.core.scanner_manager INFO     Iniciando apagado del sistema...
+[13:41:47] src.hardware.zebra_scanner INFO     Desconectando Zebra DS3678...
+[13:41:47] src.hardware.serial_interface INFO     Desconectando de puerto serie COM5...
+[13:41:47] src.hardware.serial_interface INFO     Desconectado exitosamente
+[13:41:47] src.hardware.zebra_scanner INFO     Zebra DS3678 desconectado
+[13:41:47] src.core.scanner_manager INFO     Bucle de lectura del escáner terminado
+[13:41:48] src.core.scanner_manager INFO     Bucle de procesamiento de comandos terminado
+[13:41:48] src.core.scanner_manager INFO     Sistema apagado correctamente
+[13:41:48] __main__             INFO     Scanner Manager detenido
+[13:41:52] src.services.analytics_service INFO     Bucle de analytics terminado
+[13:41:52] src.services.analytics_service INFO     Analytics Service detenido
+[13:41:52] __main__             INFO     Servicio de Analytics detenido
+[13:41:52] src.web.app          INFO     Servidor web detenido
+[13:41:52] __main__             INFO     Aplicación Web detenida
+[13:41:52] __main__             INFO     Sistema apagado correctamente
+[13:41:52] __main__             INFO     ============================================================

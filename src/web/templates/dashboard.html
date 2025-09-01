@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Johnson Controls - Sistema de Seguimiento Industrial</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏭</text></svg>">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/jci-dashboard.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="jci-header">
+            <div class="content">
+                <div class="jci-logo">JOHNSON CONTROLS</div>
+                <h1>Sistema de Seguimiento Industrial</h1>
+                <p>Plataforma de Monitoreo en Tiempo Real - Manufactura Avanzada</p>
+                <div class="plant-info">
+                    <div><strong>🏭 Planta:</strong> <span id="plant-name">Durango, México</span></div>
+                    <div><strong>🏢 Departamento:</strong> <span id="department">Manufactura</span></div>
+                    <div><strong>⏰ Turno:</strong> <span id="current-shift">Día</span></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="status-bar">
+            <div class="status-item">
+                <div class="status-dot status-active" id="system-status"></div>
+                <span><strong>Sistema:</strong> <span id="system-status-text">Operativo</span></span>
+            </div>
+            <div class="status-item">
+                <div class="status-dot status-active" id="scanner-status"></div>
+                <span><strong>Escáner:</strong> <span id="scanner-status-text">Conectado</span></span>
+            </div>
+            <div class="status-item">
+                <span><strong>Etapa Activa:</strong> <span id="current-stage">Soldadura</span></span>
+            </div>
+            <div class="status-item">
+                <span><strong>Actualizado:</strong> <span id="last-update">--:--</span></span>
+            </div>
+        </div>
+        
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-value" id="oee-score">87%</div>
+                <div class="kpi-label">OEE Score</div>
+                <div class="kpi-subtitle">Overall Equipment Effectiveness</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value" id="efficiency-rate">92%</div>
+                <div class="kpi-label">Eficiencia</div>
+                <div class="kpi-subtitle">Rendimiento del Proceso</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value" id="quality-score">96%</div>
+                <div class="kpi-label">Calidad</div>
+                <div class="kpi-subtitle">Estándar Johnson Controls</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value" id="throughput">24</div>
+                <div class="kpi-label">Throughput</div>
+                <div class="kpi-subtitle">Unidades por Hora</div>
+            </div>
+        </div>
+        
+        <div class="dashboard-grid">
+            <div class="section">
+                <h2 class="section-title">Estado de Productos</h2>
+                <div id="products-container">
+                    <div class="loading">Cargando datos del sistema...</div>
+                </div>
+            </div>
+            
+            <div>
+                <div class="section">
+                    <h2 class="section-title">Centro de Control</h2>
+                    
+                    <div class="control-panel">
+                        <div class="control-group">
+                            <div class="control-label">📊 Sistema</div>
+                            <button class="btn btn-jci" onclick="refreshData()">Actualizar Datos</button>
+                            <button class="btn btn-success btn-sm" onclick="exportReport()">Exportar Reporte</button>
+                        </div>
+                        
+                        <div class="control-group">
+                            <div class="control-label">🔧 Simulaciones</div>
+                            <button class="btn btn-success btn-sm" onclick="simulateScan('JCI240001A')">Producto A</button>
+                            <button class="btn btn-success btn-sm" onclick="simulateScan('JCI240002B')">Producto B</button>
+                            <button class="btn btn-success btn-sm" onclick="simulateScan('JCI240003C')">Producto C</button>
+                        </div>
+                        
+                        <div class="control-group">
+                            <div class="control-label">⚙️ Control de Etapas</div>
+                            <button class="btn btn-warning btn-sm" onclick="changeStage(1)">Soldadura</button>
+                            <button class="btn btn-warning btn-sm" onclick="changeStage(2)">Pulido</button>
+                            <button class="btn btn-warning btn-sm" onclick="changeStage(3)">Presión</button>
+                            <button class="btn btn-warning btn-sm" onclick="changeStage(4)">Calidad</button>
+                            <button class="btn btn-warning btn-sm" onclick="changeStage(5)">Pintura</button>
+                            <button class="btn btn-warning btn-sm" onclick="changeStage(6)">Almacén</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="section" style="margin-top: 20px;">
+                    <h2 class="section-title">Analytics</h2>
+                    <div class="chart-container">
+                        <canvas id="performanceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p class="jci-branding">JOHNSON CONTROLS</p>
+            <p>Sistema de Seguimiento Industrial v2.0</p>
+            <p>Planta Durango | Manufactura Avanzada | Integración Zebra DS3678</p>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/jci-dashboard.js') }}"></script>
+</body>
+</html>
