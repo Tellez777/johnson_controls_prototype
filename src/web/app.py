@@ -51,7 +51,12 @@ class WebApplication:
         self.is_running = False
         
         self.logger.info("Web Application inicializada con archivos estáticos")
+
+        from ..extensions.app_extension import apply_dashboard_enhancements
+        apply_dashboard_enhancements(self)
     
+
+
     def initialize(self) -> bool:
         """Inicializar aplicación web"""
         try:
