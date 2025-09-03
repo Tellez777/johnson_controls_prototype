@@ -49,6 +49,7 @@ class WebApplication:
         # Estado del servidor
         self.server_thread = None
         self.is_running = False
+        self.scanner_manager = None  # Referencia al scanner manager
         
         self.logger.info("Web Application inicializada con archivos estáticos")
 
@@ -395,3 +396,9 @@ function simulateScan(productCode) {
         """Detener servidor web"""
         self.is_running = False
         self.logger.info("Servidor web detenido")
+    
+    def set_scanner_manager(self, scanner_manager):
+        """Configurar referencia al scanner manager"""
+        self.scanner_manager = scanner_manager
+        self.app.scanner_manager = scanner_manager  # Para acceso desde Flask current_app
+        self.logger.info("Scanner Manager configurado en Web Application")

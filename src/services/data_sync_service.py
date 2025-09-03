@@ -606,3 +606,24 @@ class DataSyncService:
         except Exception as e:
             self.logger.error(f"Error guardando JSON {file_path}: {e}")
             raise
+    
+    def update_scanner_status(self, is_connected: bool):
+        """Actualizar estado de conexión del escáner en el JSON"""
+        try:
+            # Cargar estado actual
+            current_state = self._load_json_file(self.json_state_file)
+            
+            # Actualizar estado del escáner
+            current_state['scanner_connected'] = is_connected
+            current_state['timestamp'] = datetime.now().isoformat()
+            
+            # Guardar estado actualizado
+            self._save_json_file(self.json_state_file, current_state)
+            
+            # Actualizar cache
+            self.current_state = current_state
+            
+            self.logger.debug(f"Estado del escáner actualizado: {'conectado' if is_connected else 'desconectado'}")
+            
+        except Exception as e:
+            self.logger.error(f"Error actualizando estado del escáner: {e}")

@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Johnson Controls - Sistema de Seguimiento Industrial</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏭</text></svg>">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/jci-dashboard.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <link rel="stylesheet" href="/static/css/jci-dashboard.css">
 </head>
 <body>
     <div class="container">
@@ -14,7 +14,7 @@
         <div class="jci-header">
             <div class="header-content">
                 <div class="logo-section">
-                    <img src="{{ url_for('static', filename='assets/jci_logo.svg') }}" alt="Johnson Controls" class="jci-logo" onerror="this.style.display='none'">
+                    <img src="/static/assets/jci_logo.svg" alt="Johnson Controls" class="jci-logo" onerror="this.style.display='none'">
                     <div class="company-info">
                         <div class="company-name">JOHNSON CONTROLS</div>
                         <div class="system-title">Sistema de Seguimiento Industrial</div>
@@ -119,14 +119,8 @@
         <div class="main-content">
             <!-- Lista de Productos Mejorada -->
             <div class="section products-section">
-                <div class="section-header-with-search">
-                    <h2 class="section-title">Estado de Productos</h2>
-                    <div class="product-search">
-                        <input type="text" id="product-search" placeholder="Buscar por código..." class="search-input">
-                        <span class="search-icon">🔍</span>
-                    </div>
-                </div>
-                <div id="products-container" class="products-scrollable-container">
+                <h2 class="section-title">Estado de Productos</h2>
+                <div id="products-container">
                     <div class="loading">Cargando datos del sistema...</div>
                 </div>
             </div>
@@ -157,29 +151,13 @@
                     </div>
                     
                     <div class="control-group">
-                        <div class="control-label">Control de Etapas
-                            <small id="active-stage-indicator" class="text-info"> (Activa: Soldadura)</small>
-                        </div>
-                        <div class="stage-buttons-container">
-                            <button id="stage-btn-1" class="btn btn-warning btn-sm stage-btn active" onclick="changeStage(1)" data-stage="1">
-                                <span class="stage-indicator">●</span> Soldadura
-                            </button>
-                            <button id="stage-btn-2" class="btn btn-warning btn-sm stage-btn" onclick="changeStage(2)" data-stage="2">
-                                <span class="stage-indicator">●</span> Pulido
-                            </button>
-                            <button id="stage-btn-3" class="btn btn-warning btn-sm stage-btn" onclick="changeStage(3)" data-stage="3">
-                                <span class="stage-indicator">●</span> Presión
-                            </button>
-                            <button id="stage-btn-4" class="btn btn-warning btn-sm stage-btn" onclick="changeStage(4)" data-stage="4">
-                                <span class="stage-indicator">●</span> Calidad
-                            </button>
-                            <button id="stage-btn-5" class="btn btn-warning btn-sm stage-btn" onclick="changeStage(5)" data-stage="5">
-                                <span class="stage-indicator">●</span> Pintura
-                            </button>
-                            <button id="stage-btn-6" class="btn btn-warning btn-sm stage-btn" onclick="changeStage(6)" data-stage="6">
-                                <span class="stage-indicator">●</span> Almacén
-                            </button>
-                        </div>
+                        <div class="control-label">Control de Etapas</div>
+                        <button class="btn btn-warning btn-sm" onclick="changeStage(1)">Soldadura</button>
+                        <button class="btn btn-warning btn-sm" onclick="changeStage(2)">Pulido</button>
+                        <button class="btn btn-warning btn-sm" onclick="changeStage(3)">Presión</button>
+                        <button class="btn btn-warning btn-sm" onclick="changeStage(4)">Calidad</button>
+                        <button class="btn btn-warning btn-sm" onclick="changeStage(5)">Pintura</button>
+                        <button class="btn btn-warning btn-sm" onclick="changeStage(6)">Almacén</button>
                     </div>
                 </div>
                 
@@ -242,7 +220,7 @@
         <div class="section analytics-section">
             <div class="section-header">
                 <h2 class="section-title">Analytics Avanzados</h2>
-                <button class="btn btn-toggle" id="toggle-analytics">
+                <button class="btn btn-toggle" id="toggle-analytics" onclick="toggleAnalytics()">
                     <span id="analytics-toggle-text">Mostrar Gráficas</span>
                     <span class="toggle-icon" id="analytics-toggle-icon">▼</span>
                 </button>
@@ -303,6 +281,6 @@
         </div>
     </div>
 
-    <script src="{{ url_for('static', filename='js/jci-dashboard.js') }}"></script>
+    <script src="/static/js/jci-dashboard.js"></script>
 </body>
 </html>

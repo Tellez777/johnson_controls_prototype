@@ -389,23 +389,36 @@ class ZebraScanner:
         self.logger.info("Estadísticas del escáner reseteadas")
     
     def test_connection(self) -> bool:
-        """Probar la conexión del escáner"""
+        """Probar la conexión del escáner de forma más robusta"""
         try:
-            if not self.is_connected():
+            # Verificar si el serial interface está disponible
+            if not hasattr(self, 'serial_interface') or not self.serial_interface:
+                self.logger.debug("Serial interface no disponible")
+                self._update_status(ScannerStatus.DISCONNECTED)
                 return False
             
-            # Enviar comando de prueba
-            test_command = b'<K100,1>\r\n'
-            self.serial_interface.write(test_command)
+            # Usar el método test_connection del serial interface
+            connection_ok = self.serial_interface.test_connection()
             
-            # Esperar respuesta
-            time.sleep(0.2)
-            response = self.serial_interface.read()
+            if not connection_ok:
+                self.logger.debug("Prueba de conexión serie falló")
+                self._update_status(ScannerStatus.DISCONNECTED)
+                return False
             
-            return response is not None and len(response) > 0
+            # Verificar el estado interno del scanner
+            if self.status == ScannerStatus.ERROR:
+                self.logger.debug("Scanner en estado de error")
+                return False
+            
+            # La conexión parece estar bien
+            if self.status == ScannerStatus.DISCONNECTED:
+                self._update_status(ScannerStatus.CONNECTED)
+            
+            return True
             
         except Exception as e:
-            self.logger.error(f"Error probando conexión: {e}")
+            self.logger.debug(f"Error general probando conexión: {e}")
+            self._update_status(ScannerStatus.ERROR)
             return False
     
     def configure_beep(self, enabled: bool):

@@ -1,18 +1,459 @@
 {
   "current_stage": 1,
   "is_running": false,
-  "scan_count": 0,
+  "scan_count": 12,
   "error_count": 0,
-  "products": {},
-  "session_stats": {
-    "start_time": "2025-09-02 09:26:57.382706",
-    "scans_processed": 0,
-    "errors_count": 0,
-    "products_completed": 0,
-    "average_cycle_time": 0.0
+  "scanner_connected": true,
+  "products": {
+    "fewygfyu3": {
+      "barcode": "fewygfyu3",
+      "product_name": "Controlador HVAC Premium",
+      "product_type": "HVAC_CONTROLLER",
+      "status": "En Proceso",
+      "current_stage": 2,
+      "current_stage_name": "Pulido",
+      "progress_percentage": 33.3,
+      "quality_score": 95.2,
+      "created_at": "2025-09-03T08:15:00",
+      "updated_at": "2025-09-03T11:30:00",
+      "stages_completed": [
+        {
+          "stage": 1,
+          "name": "Soldadura",
+          "completed_at": "2025-09-03T09:45:00",
+          "operator": "OPER001",
+          "quality": 96.0
+        }
+      ],
+      "total_cycle_time": 75,
+      "operator_current": "OPER002"
+    },
+    "fwe24gvfd": {
+      "barcode": "fwe24gvfd",
+      "product_name": "Sistema Batería Industrial",
+      "product_type": "BATTERY_SYSTEM",
+      "status": "En Proceso",
+      "current_stage": 4,
+      "current_stage_name": "Calidad",
+      "progress_percentage": 66.7,
+      "quality_score": 98.1,
+      "created_at": "2025-09-03T07:30:00",
+      "updated_at": "2025-09-03T12:15:00",
+      "stages_completed": [
+        {
+          "stage": 1,
+          "name": "Soldadura",
+          "completed_at": "2025-09-03T08:30:00",
+          "operator": "OPER001",
+          "quality": 97.5
+        },
+        {
+          "stage": 2,
+          "name": "Pulido",
+          "completed_at": "2025-09-03T09:45:00",
+          "operator": "OPER002",
+          "quality": 98.2
+        },
+        {
+          "stage": 3,
+          "name": "Presión",
+          "completed_at": "2025-09-03T11:30:00",
+          "operator": "OPER003",
+          "quality": 98.5
+        }
+      ],
+      "total_cycle_time": 195,
+      "operator_current": "OPER004"
+    },
+    "fdgffdwwd3": {
+      "barcode": "fdgffdwwd3",
+      "product_name": "Switch Inteligente IoT",
+      "product_type": "IOT_SWITCH",
+      "status": "Completado",
+      "current_stage": 6,
+      "current_stage_name": "Almacén",
+      "progress_percentage": 100.0,
+      "quality_score": 97.8,
+      "created_at": "2025-09-03T06:00:00",
+      "updated_at": "2025-09-03T13:45:00",
+      "stages_completed": [
+        {
+          "stage": 1,
+          "name": "Soldadura",
+          "completed_at": "2025-09-03T06:30:00",
+          "operator": "OPER001",
+          "quality": 96.5
+        },
+        {
+          "stage": 2,
+          "name": "Pulido",
+          "completed_at": "2025-09-03T07:15:00",
+          "operator": "OPER002",
+          "quality": 97.8
+        },
+        {
+          "stage": 3,
+          "name": "Presión",
+          "completed_at": "2025-09-03T08:00:00",
+          "operator": "OPER003",
+          "quality": 98.0
+        },
+        {
+          "stage": 4,
+          "name": "Calidad",
+          "completed_at": "2025-09-03T09:30:00",
+          "operator": "OPER004",
+          "quality": 98.5
+        },
+        {
+          "stage": 5,
+          "name": "Pintura",
+          "completed_at": "2025-09-03T11:45:00",
+          "operator": "OPER005",
+          "quality": 97.2
+        },
+        {
+          "stage": 6,
+          "name": "Almacén",
+          "completed_at": "2025-09-03T13:45:00",
+          "operator": "OPER006",
+          "quality": 98.0
+        }
+      ],
+      "total_cycle_time": 345,
+      "operator_current": null
+    },
+    "JCI240001A": {
+      "barcode": "JCI240001A",
+      "product_name": "Termostato Digital Pro",
+      "product_type": "THERMOSTAT",
+      "status": "En Proceso",
+      "current_stage": 1,
+      "current_stage_name": "Soldadura",
+      "progress_percentage": 16.7,
+      "quality_score": 0,
+      "created_at": "2025-09-03T09:00:00",
+      "updated_at": "2025-09-03T09:00:00",
+      "stages_completed": [],
+      "total_cycle_time": 0,
+      "operator_current": "OPER001"
+    },
+    "JCI240002B": {
+      "barcode": "JCI240002B",
+      "product_name": "Sensor de Temperatura",
+      "product_type": "SENSOR",
+      "status": "En Proceso",
+      "current_stage": 3,
+      "current_stage_name": "Presión",
+      "progress_percentage": 50.0,
+      "quality_score": 94.5,
+      "created_at": "2025-09-03T07:15:00",
+      "updated_at": "2025-09-03T10:30:00",
+      "stages_completed": [
+        {
+          "stage": 1,
+          "name": "Soldadura",
+          "completed_at": "2025-09-03T08:15:00",
+          "operator": "OPER001",
+          "quality": 95.0
+        },
+        {
+          "stage": 2,
+          "name": "Pulido",
+          "completed_at": "2025-09-03T09:30:00",
+          "operator": "OPER002",
+          "quality": 94.0
+        }
+      ],
+      "total_cycle_time": 135,
+      "operator_current": "OPER003"
+    },
+    "JCI240003C": {
+      "barcode": "JCI240003C",
+      "product_name": "Válvula Reguladora",
+      "product_type": "VALVE",
+      "status": "Completado",
+      "current_stage": 6,
+      "current_stage_name": "Almacén",
+      "progress_percentage": 100.0,
+      "quality_score": 96.3,
+      "created_at": "2025-09-03T05:00:00",
+      "updated_at": "2025-09-03T14:30:00",
+      "stages_completed": [
+        {
+          "stage": 1,
+          "name": "Soldadura",
+          "completed_at": "2025-09-03T06:00:00",
+          "operator": "OPER001",
+          "quality": 95.5
+        },
+        {
+          "stage": 2,
+          "name": "Pulido",
+          "completed_at": "2025-09-03T07:30:00",
+          "operator": "OPER002",
+          "quality": 96.8
+        },
+        {
+          "stage": 3,
+          "name": "Presión",
+          "completed_at": "2025-09-03T09:00:00",
+          "operator": "OPER003",
+          "quality": 97.2
+        },
+        {
+          "stage": 4,
+          "name": "Calidad",
+          "completed_at": "2025-09-03T11:15:00",
+          "operator": "OPER004",
+          "quality": 96.0
+        },
+        {
+          "stage": 5,
+          "name": "Pintura",
+          "completed_at": "2025-09-03T13:00:00",
+          "operator": "OPER005",
+          "quality": 96.2
+        },
+        {
+          "stage": 6,
+          "name": "Almacén",
+          "completed_at": "2025-09-03T14:30:00",
+          "operator": "OPER006",
+          "quality": 96.5
+        }
+      ],
+      "total_cycle_time": 570,
+      "operator_current": null
+    },
+    "JCI240004D": {
+      "barcode": "JCI240004D",
+      "product_name": "Actuador Eléctrico",
+      "product_type": "ACTUATOR",
+      "status": "En Proceso",
+      "current_stage": 5,
+      "current_stage_name": "Pintura",
+      "progress_percentage": 83.3,
+      "quality_score": 97.1,
+      "created_at": "2025-09-03T06:30:00",
+      "updated_at": "2025-09-03T12:45:00",
+      "stages_completed": [
+        {
+          "stage": 1,
+          "name": "Soldadura",
+          "completed_at": "2025-09-03T07:30:00",
+          "operator": "OPER001",
+          "quality": 97.5
+        },
+        {
+          "stage": 2,
+          "name": "Pulido",
+          "completed_at": "2025-09-03T09:00:00",
+          "operator": "OPER002",
+          "quality": 96.8
+        },
+        {
+          "stage": 3,
+          "name": "Presión",
+          "completed_at": "2025-09-03T10:30:00",
+          "operator": "OPER003",
+          "quality": 97.2
+        },
+        {
+          "stage": 4,
+          "name": "Calidad",
+          "completed_at": "2025-09-03T11:45:00",
+          "operator": "OPER004",
+          "quality": 97.0
+        }
+      ],
+      "total_cycle_time": 375,
+      "operator_current": "OPER005"
+    },
+    "JCI240005E": {
+      "barcode": "JCI240005E",
+      "product_name": "Panel de Control",
+      "product_type": "CONTROL_PANEL",
+      "status": "Pendiente",
+      "current_stage": 1,
+      "current_stage_name": "Soldadura",
+      "progress_percentage": 0,
+      "quality_score": 0,
+      "created_at": "2025-09-03T10:00:00",
+      "updated_at": "2025-09-03T10:00:00",
+      "stages_completed": [],
+      "total_cycle_time": 0,
+      "operator_current": null
+    },
+    "JCI240006F": {
+      "barcode": "JCI240006F",
+      "product_name": "Motor de Ventilación",
+      "product_type": "MOTOR",
+      "status": "En Proceso",
+      "current_stage": 2,
+      "current_stage_name": "Pulido",
+      "progress_percentage": 33.3,
+      "quality_score": 93.8,
+      "created_at": "2025-09-03T08:45:00",
+      "updated_at": "2025-09-03T11:15:00",
+      "stages_completed": [
+        {
+          "stage": 1,
+          "name": "Soldadura",
+          "completed_at": "2025-09-03T10:15:00",
+          "operator": "OPER001",
+          "quality": 93.8
+        }
+      ],
+      "total_cycle_time": 90,
+      "operator_current": "OPER002"
+    },
+    "JCI240007G": {
+      "barcode": "JCI240007G",
+      "product_name": "Filtro de Aire Inteligente",
+      "product_type": "FILTER",
+      "status": "En Proceso",
+      "current_stage": 4,
+      "current_stage_name": "Calidad",
+      "progress_percentage": 66.7,
+      "quality_score": 95.6,
+      "created_at": "2025-09-03T07:00:00",
+      "updated_at": "2025-09-03T13:00:00",
+      "stages_completed": [
+        {
+          "stage": 1,
+          "name": "Soldadura",
+          "completed_at": "2025-09-03T08:30:00",
+          "operator": "OPER001",
+          "quality": 95.2
+        },
+        {
+          "stage": 2,
+          "name": "Pulido",
+          "completed_at": "2025-09-03T10:15:00",
+          "operator": "OPER002",
+          "quality": 96.0
+        },
+        {
+          "stage": 3,
+          "name": "Presión",
+          "completed_at": "2025-09-03T12:00:00",
+          "operator": "OPER003",
+          "quality": 95.6
+        }
+      ],
+      "total_cycle_time": 240,
+      "operator_current": "OPER004"
+    },
+    "JCI240008H": {
+      "barcode": "JCI240008H",
+      "product_name": "Unidad de Control Maestra",
+      "product_type": "MASTER_UNIT",
+      "status": "Pendiente",
+      "current_stage": 1,
+      "current_stage_name": "Soldadura",
+      "progress_percentage": 0,
+      "quality_score": 0,
+      "created_at": "2025-09-03T11:00:00",
+      "updated_at": "2025-09-03T11:00:00",
+      "stages_completed": [],
+      "total_cycle_time": 0,
+      "operator_current": null
+    },
+    "JCI240009I": {
+      "barcode": "JCI240009I",
+      "product_name": "Sensor de Humedad",
+      "product_type": "SENSOR",
+      "status": "En Proceso",
+      "current_stage": 3,
+      "current_stage_name": "Presión",
+      "progress_percentage": 50.0,
+      "quality_score": 92.4,
+      "created_at": "2025-09-03T08:00:00",
+      "updated_at": "2025-09-03T12:30:00",
+      "stages_completed": [
+        {
+          "stage": 1,
+          "name": "Soldadura",
+          "completed_at": "2025-09-03T09:30:00",
+          "operator": "OPER001",
+          "quality": 92.8
+        },
+        {
+          "stage": 2,
+          "name": "Pulido",
+          "completed_at": "2025-09-03T11:15:00",
+          "operator": "OPER002",
+          "quality": 92.0
+        }
+      ],
+      "total_cycle_time": 150,
+      "operator_current": "OPER003"
+    }
   },
-  "timestamp": "2025-09-02T09:53:17.685816",
-  "last_sync": "2025-09-02T09:53:17.685830",
+  "session_stats": {
+    "start_time": "2025-09-03 05:00:00.000000",
+    "scans_processed": 24,
+    "errors_count": 0,
+    "products_completed": 2,
+    "average_cycle_time": 232.5
+  },
+  "timestamp": "2025-09-03T09:21:06.013540",
+  "last_sync": "2025-09-03T15:00:00.000000",
   "system_version": "2.0",
-  "plant_id": "JCI_MX_DEV_001"
+  "plant_id": "JCI_MX_DEV_001",
+  "operators": {
+    "OPER001": {
+      "name": "Carlos Mendoza",
+      "shift": "Día",
+      "station": "Soldadura"
+    },
+    "OPER002": {
+      "name": "Ana Rodriguez",
+      "shift": "Día",
+      "station": "Pulido"
+    },
+    "OPER003": {
+      "name": "Luis Garcia",
+      "shift": "Día",
+      "station": "Presión"
+    },
+    "OPER004": {
+      "name": "Maria Lopez",
+      "shift": "Día",
+      "station": "Calidad"
+    },
+    "OPER005": {
+      "name": "José Martinez",
+      "shift": "Día",
+      "station": "Pintura"
+    },
+    "OPER006": {
+      "name": "Carmen Silva",
+      "shift": "Día",
+      "station": "Almacén"
+    }
+  },
+  "shifts": {
+    "current": "Tarde",
+    "available": [
+      "Día",
+      "Tarde",
+      "Noche"
+    ],
+    "schedule": {
+      "Día": {
+        "start": "06:00",
+        "end": "14:00"
+      },
+      "Tarde": {
+        "start": "14:00",
+        "end": "22:00"
+      },
+      "Noche": {
+        "start": "22:00",
+        "end": "06:00"
+      }
+    }
+  }
 }

@@ -70,6 +70,10 @@ class JohnsonControlsSystem:
                 if not self.web_app.initialize():
                     self.logger.error("Error inicializando aplicación web")
                     return False
+                
+                # Pasar referencia del scanner_manager a la aplicación web
+                if self.scanner_manager and hasattr(self.web_app, 'set_scanner_manager'):
+                    self.web_app.set_scanner_manager(self.scanner_manager)
             
             if self.args.mode in ['full', 'analytics']:
                 self.analytics_service = AnalyticsService()
@@ -206,9 +210,9 @@ class JohnsonControlsSystem:
                     status = self.scanner_manager.get_system_status()
                     products = self.scanner_manager.get_products_summary()
                     
-                    print(f"Estado del Sistema: {'🟢 Activo' if status['is_running'] else '🔴 Inactivo'}")
+                    print(f"Estado del Sistema: {'Activo' if status['is_running'] else 'Inactivo'}")
                     print(f"Etapa Actual: {status['current_stage']}")
-                    print(f"Escáner: {'🟢 Conectado' if status['scanner_connected'] else '🔴 Desconectado'}")
+                    print(f"Escáner: {'Conectado' if status['scanner_connected'] else 'Desconectado'}")
                     print(f"Productos: {products['total']} | Completados: {products['completed']} | En Proceso: {products['in_progress']}")
                 
                 print("\nOpciones disponibles:")
@@ -225,7 +229,7 @@ class JohnsonControlsSystem:
                 if opcion in ['1', '2', '3', '4', '5', '6']:
                     if self.scanner_manager:
                         self.scanner_manager.change_current_stage(int(opcion))
-                        print(f"✅ Cambiado a etapa {opcion}")
+                        print(f"Cambiado a etapa {opcion}")
                 
                 elif opcion == 's':
                     self._simulate_scan_menu()
@@ -246,22 +250,22 @@ class JohnsonControlsSystem:
                     break
                 
                 else:
-                    print("❌ Opción no válida")
+                    print("Opción no válida")
                 
             except KeyboardInterrupt:
                 break
             except Exception as e:
-                print(f"❌ Error: {e}")
+                print(f"Error: {e}")
     
     def _simulate_scan_menu(self):
         """Menú para simular escaneos"""
         if not self.scanner_manager:
-            print("❌ Scanner Manager no disponible")
+            print("Scanner Manager no disponible")
             return
         
         print("\nProductos disponibles:")
         for i, (barcode, product) in enumerate(self.scanner_manager.products.items(), 1):
-            status_icon = "🟢" if product.status.value == "Completado" else "🟡" if product.status.value == "En Proceso" else "🔴"
+            status_icon = "[OK]" if product.status.value == "Completado" else "[WIP]" if product.status.value == "En Proceso" else "[PEND]"
             print(f"{i}. {barcode} - {product.product_name} {status_icon}")
         
         try:
@@ -272,15 +276,15 @@ class JohnsonControlsSystem:
                 if 1 <= int(seleccion) <= len(productos):
                     barcode = productos[int(seleccion) - 1]
                 else:
-                    print("❌ Número inválido")
+                    print("Número inválido")
                     return
             else:
                 barcode = seleccion.upper()
             
             if self.scanner_manager.simulate_scan(barcode):
-                print(f"✅ Escaneo simulado exitosamente: {barcode}")
+                print(f"Escaneo simulado exitosamente: {barcode}")
             else:
-                print(f"❌ Error en simulación: {barcode}")
+                print(f"Error en simulación: {barcode}")
         
         except Exception as e:
             print(f"❌ Error: {e}")
@@ -288,7 +292,7 @@ class JohnsonControlsSystem:
     def _show_detailed_stats(self):
         """Mostrar estadísticas detalladas"""
         if not self.scanner_manager:
-            print("❌ Scanner Manager no disponible")
+            print("Scanner Manager no disponible")
             return
         
         print(f"\n{'='*60}")
@@ -312,7 +316,7 @@ class JohnsonControlsSystem:
     def _reset_product_menu(self):
         """Menú para resetear productos"""
         if not self.scanner_manager:
-            print("❌ Scanner Manager no disponible")
+            print("Scanner Manager no disponible")
             return
         
         print("\nProductos para resetear:")
@@ -327,11 +331,11 @@ class JohnsonControlsSystem:
                 if 1 <= int(seleccion) <= len(productos):
                     barcode = productos[int(seleccion) - 1]
                     self.scanner_manager.reset_product(barcode)
-                    print(f"✅ Producto reseteado: {barcode}")
+                    print(f"Producto reseteado: {barcode}")
                 else:
-                    print("❌ Número inválido")
+                    print("Número inválido")
             else:
-                print("❌ Selección inválida")
+                print("Selección inválida")
         
         except Exception as e:
             print(f"❌ Error: {e}")
@@ -352,7 +356,7 @@ class JohnsonControlsSystem:
     
     def _show_recent_logs(self):
         """Mostrar logs recientes (funcionalidad simplificada)"""
-        print("📋 Últimos eventos del sistema:")
+        print("Últimos eventos del sistema:")
         print("(Esta funcionalidad se implementaría leyendo archivos de log)")
     
     def _show_control_info(self):
@@ -362,22 +366,22 @@ class JohnsonControlsSystem:
         print(f"{'='*60}")
         
         if self.args.mode in ['full', 'console', 'scanner']:
-            print("🎮 Controles disponibles:")
+            print("Controles disponibles:")
             print("  - Consola interactiva para gestión")
             print("  - Simulación de escaneos")
             print("  - Control de etapas")
         
         if self.args.mode in ['full', 'web']:
-            print(f"🌐 Interfaz Web: http://localhost:{config.web.port}")
+            print(f"Interfaz Web: http://localhost:{config.web.port}")
             print("  - Dashboard ejecutivo en tiempo real")
             print("  - Control remoto del sistema")
             print("  - Analytics y reportes")
         
-        print(f"📊 Archivos de datos:")
+        print(f"Archivos de datos:")
         print(f"  - Estado: {config.get_json_path('state')}")
         print(f"  - Excel: {config.get_excel_path('data')}")
         
-        print("⚠️  Para detener el sistema: Ctrl+C")
+        print("Para detener el sistema: Ctrl+C")
     
     def _signal_handler(self, signum, frame):
         """Manejar señales del sistema"""
@@ -455,7 +459,7 @@ def main():
     if system.initialize():
         system.run()
     else:
-        print("❌ Error en la inicialización del sistema")
+        print("Error en la inicialización del sistema")
         sys.exit(1)
 
 

@@ -39,6 +39,11 @@ class JCIDashboard {
         this.setupEventListeners();
         this.loadInitialData();
         this.startAutoUpdate();
+        this.updateCurrentShiftByTime();
+        
+        // Actualizar turno cada minuto
+        setInterval(() => this.updateCurrentShiftByTime(), 60000);
+        
         console.log('Johnson Controls Dashboard v2.0 inicializado');
     }
     
@@ -76,10 +81,15 @@ class JCIDashboard {
             toggleBtn.addEventListener('click', () => this.toggleAnalytics());
         }
         
-        // Botones de simulación
+        // Botones de simulación - actualizar para códigos reales
         const simulateButtons = document.querySelectorAll('[onclick*="simulateScan"]');
         simulateButtons.forEach(btn => {
-            const productCode = btn.onclick.toString().match(/JCI\w+/)?.[0];
+            let productCode = btn.onclick.toString().match(/\w+/)?.[0];
+            // Mapear botones a códigos reales
+            if (btn.textContent.includes('Producto A')) productCode = 'fewygfyu3';
+            else if (btn.textContent.includes('Producto B')) productCode = 'fwe24gvfd';
+            else if (btn.textContent.includes('Producto C')) productCode = 'fdgffdwwd3';
+            
             if (productCode) {
                 btn.onclick = null; // Remove inline onclick
                 btn.addEventListener('click', () => this.simulateScan(productCode));
@@ -95,6 +105,14 @@ class JCIDashboard {
                 btn.addEventListener('click', () => this.changeStage(parseInt(stage)));
             }
         });
+        
+        // Buscador de productos
+        const searchInput = document.getElementById('product-search');
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                this.filterProducts(e.target.value);
+            });
+        }
     }
     
     async loadInitialData() {
@@ -109,7 +127,7 @@ class JCIDashboard {
     }
     
     async loadEnhancedData() {
-        const response = await fetch('/api/enhanced_data');
+        const response = await fetch('/api/data/enhanced_data');
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}`);
         }
@@ -117,7 +135,7 @@ class JCIDashboard {
         const data = await response.json();
         this.updateUI(data);
         this.updateAnalytics(data);
-        this.updateConnectionStatus(true, data);
+        // No llamar updateConnectionStatus aquí, ya que updateUI maneja el estado correctamente
     }
     
     async loadBasicData() {
@@ -129,7 +147,7 @@ class JCIDashboard {
         
         const data = await response.json();
         this.updateUI(data);
-        this.updateConnectionStatus(true, data);
+        // No llamar updateConnectionStatus aquí, ya que updateUI maneja el estado correctamente
     }
     
     async loadData() {
@@ -137,7 +155,9 @@ class JCIDashboard {
             await this.loadInitialData();
         } catch (error) {
             console.error('Error cargando datos:', error);
-            this.updateConnectionStatus(false, null, error.message);
+            // En caso de error de conexión, marcar sistema como error
+            this.updateSystemStatus(false);
+            this.updateScannerStatus(false);
             this.updateSystemInfo('Error de conexión: ' + error.message, 'error');
         }
     }
@@ -149,6 +169,13 @@ class JCIDashboard {
         this.updateElement('completed-products', stats.completados || 0);
         this.updateElement('process-products', stats.en_proceso || 0);
         this.updateElement('pending-products', stats.pendientes || 0);
+        
+        // Actualizar estado del sistema y escáner
+        const sistemaActivo = data.sistema_activo === true;
+        const scannerConectado = data.scanner_conectado === true;
+        
+        this.updateSystemStatus(sistemaActivo);
+        this.updateScannerStatus(scannerConectado);
         
         // Actualizar etapa actual
         this.updateElement('current-stage', data.etapa_nombre || '-');
@@ -166,8 +193,22 @@ class JCIDashboard {
         this.updateSystemInfo('Sistema funcionando correctamente', 'success');
         this.updateElement('last-update', this.formatTimestamp(data.timestamp));
         
+        // Actualizar gráficas si están visibles
+        if (this.analyticsVisible && data.datos_graficas) {
+            this.updateCharts(data.datos_graficas);
+        }
+        
+        // Actualizar listas de gestión
+        if (data.operadores) {
+            this.updateOperatorsList(data.operadores);
+        }
+        this.updateStagesList();
+        
         // Marcar timestamp de últimos datos
         this.lastDataTimestamp = new Date(data.timestamp || new Date());
+        
+        // Almacenar datos para uso en edición
+        this.lastLoadedData = data;
     }
     
     updateOperationalKPIs(data) {
@@ -254,6 +295,8 @@ class JCIDashboard {
     
     updateProductsDisplay(productos) {
         const container = document.getElementById('products-container');
+        const searchInput = document.getElementById('product-search');
+        const currentSearchTerm = searchInput ? searchInput.value : '';
         
         if (Object.keys(productos).length === 0) {
             container.innerHTML = '<div class="loading">No hay datos de productos disponibles</div>';
@@ -266,6 +309,46 @@ class JCIDashboard {
             const productDiv = this.createProductCard(codigo, producto);
             container.appendChild(productDiv);
         });
+        
+        // Reaplicar el filtro si había una búsqueda activa
+        if (currentSearchTerm.trim() !== '') {
+            this.filterProducts(currentSearchTerm);
+        }
+    }
+    
+    filterProducts(searchTerm) {
+        const productCards = document.querySelectorAll('.product-card');
+        const search = searchTerm.toLowerCase().trim();
+        
+        productCards.forEach(card => {
+            const productCode = card.getAttribute('data-product-code');
+            const visible = productCode && productCode.includes(search);
+            
+            if (visible || search === '') {
+                card.classList.remove('hidden');
+                card.style.display = 'block';
+            } else {
+                card.classList.add('hidden');
+                card.style.display = 'none';
+            }
+        });
+        
+        // Mostrar mensaje si no hay resultados
+        const visibleCards = document.querySelectorAll('.product-card:not(.hidden)');
+        const container = document.getElementById('products-container');
+        
+        // Remover mensaje de no resultados previo
+        const noResultsMsg = container.querySelector('.no-results-message');
+        if (noResultsMsg) {
+            noResultsMsg.remove();
+        }
+        
+        if (visibleCards.length === 0 && search !== '') {
+            const noResultsDiv = document.createElement('div');
+            noResultsDiv.className = 'no-results-message loading';
+            noResultsDiv.innerHTML = `No se encontraron productos con el código: "<strong>${searchTerm}</strong>"`;
+            container.appendChild(noResultsDiv);
+        }
     }
     
     createProductCard(codigo, producto) {
@@ -275,6 +358,7 @@ class JCIDashboard {
         
         const productDiv = document.createElement('div');
         productDiv.className = 'product-card';
+        productDiv.setAttribute('data-product-code', codigo.toLowerCase());
         productDiv.innerHTML = `
             <div class="product-header">
                 <div>
@@ -379,24 +463,51 @@ class JCIDashboard {
     }
     
     toggleAnalytics() {
+        console.log('toggleAnalytics() llamado, estado actual:', this.analyticsVisible);
+        
         const content = document.getElementById('analytics-content');
         const toggleText = document.getElementById('analytics-toggle-text');
         const toggleIcon = document.getElementById('analytics-toggle-icon');
         
-        if (!content) return;
+        console.log('Elementos encontrados:', { 
+            content: !!content, 
+            toggleText: !!toggleText, 
+            toggleIcon: !!toggleIcon 
+        });
+        
+        if (!content) {
+            console.error('No se encontró el elemento analytics-content');
+            return;
+        }
         
         this.analyticsVisible = !this.analyticsVisible;
+        console.log('Nuevo estado analyticsVisible:', this.analyticsVisible);
         
         if (this.analyticsVisible) {
+            console.log('Mostrando analytics...');
             content.style.display = 'block';
+            console.log('Display style cambiado a block');
+            
             if (toggleText) toggleText.textContent = 'Ocultar Gráficas';
             if (toggleIcon) {
                 toggleIcon.textContent = '▲';
                 toggleIcon.classList.add('expanded');
             }
             
+            // Verificar que el contenido sea visible
+            setTimeout(() => {
+                const isVisible = content.offsetHeight > 0;
+                console.log('Contenido visible después de 100ms:', isVisible);
+                console.log('Altura del contenedor:', content.offsetHeight);
+            }, 100);
+            
             // Inicializar gráficos cuando se muestran
-            setTimeout(() => this.initializeCharts(), 100);
+            setTimeout(() => {
+                console.log('Intentando inicializar gráficos...');
+                this.initializeCharts();
+                // Recargar datos para las gráficas
+                this.loadData();
+            }, 200);
         } else {
             content.style.display = 'none';
             if (toggleText) toggleText.textContent = 'Mostrar Gráficas';
@@ -410,16 +521,34 @@ class JCIDashboard {
     initializeCharts() {
         if (!this.analyticsVisible) return;
         
-        this.initProgressChart();
-        this.initStatusChart();
-        this.initStageEfficiencyChart();
-        this.initTimelineChart();
+        console.log('Inicializando gráficas...');
+        
+        // Verificar si Chart.js está disponible
+        if (typeof Chart === 'undefined') {
+            console.error('Chart.js no está disponible');
+            return;
+        }
+        
+        // Pequeña demora para asegurar que el DOM esté listo
+        setTimeout(() => {
+            this.initProgressChart();
+            this.initStatusChart();
+            this.initStageEfficiencyChart();
+            this.initTimelineChart();
+            
+            // Cargar datos inmediatamente después de inicializar
+            this.loadData();
+        }, 200);
     }
     
     initProgressChart() {
         const canvas = document.getElementById('progressChart');
-        if (!canvas) return;
+        if (!canvas) {
+            console.error('Canvas progressChart no encontrado');
+            return;
+        }
         
+        console.log('Inicializando Progress Chart...');
         const ctx = canvas.getContext('2d');
         
         // Destruir gráfico existente si existe
@@ -427,7 +556,8 @@ class JCIDashboard {
             this.charts.progress.destroy();
         }
         
-        this.charts.progress = new Chart(ctx, {
+        try {
+            this.charts.progress = new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: ['Controlador HVAC', 'Sistema Batería', 'Switch Inteligente'],
@@ -467,12 +597,20 @@ class JCIDashboard {
                     }
                 }
             }
-        });
+            });
+            console.log('Progress Chart inicializado exitosamente');
+        } catch (error) {
+            console.error('Error inicializando Progress Chart:', error);
+        }
     }
     
     initStatusChart() {
         const canvas = document.getElementById('statusChart');
-        if (!canvas) return;
+        if (!canvas) {
+            console.error('Canvas statusChart no encontrado');
+            return;
+        }
+        console.log('Inicializando Status Chart...');
         
         const ctx = canvas.getContext('2d');
         
@@ -744,7 +882,11 @@ class JCIDashboard {
             const result = await response.json();
             
             if (response.ok && result.success) {
-                this.showNotification(`Etapa cambiada a ${etapa}`, 'success');
+                this.showNotification(`Etapa cambiada a ${etapa}: ${result.stage_name}`, 'success');
+                
+                // Actualizar indicadores visuales
+                this.updateStageIndicators(etapa, result.stage_name);
+                
                 setTimeout(() => this.loadData(), 500);
             } else {
                 this.showNotification('Error cambiando etapa: ' + result.message, 'error');
@@ -755,13 +897,83 @@ class JCIDashboard {
         }
     }
     
+    updateStageIndicators(activeStage, stageName) {
+        // Obtener nombres de etapas
+        const stageNames = {
+            1: 'Soldadura', 2: 'Pulido', 3: 'Presión',
+            4: 'Calidad', 5: 'Pintura', 6: 'Almacén'
+        };
+        
+        // Remover clase active de todos los botones
+        document.querySelectorAll('.stage-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        
+        // Agregar clase active al botón seleccionado
+        const activeButton = document.getElementById(`stage-btn-${activeStage}`);
+        if (activeButton) {
+            activeButton.classList.add('active');
+        }
+        
+        // Actualizar indicador de etapa activa
+        const indicator = document.getElementById('active-stage-indicator');
+        if (indicator) {
+            const displayName = stageName || stageNames[activeStage] || `Etapa ${activeStage}`;
+            indicator.textContent = ` (Activa: ${displayName})`;
+        }
+        
+        console.log(`Etapa activa actualizada: ${activeStage} - ${stageName}`);
+    }
+    
     refreshData() {
         this.showNotification('Actualizando datos...', 'info');
         this.loadData();
     }
     
     exportReport() {
-        this.showNotification('Función de exportación en desarrollo', 'info');
+        this.showNotification('Generando reporte Excel...', 'info');
+        
+        // Create a temporary link to trigger download
+        const downloadLink = document.createElement('a');
+        downloadLink.href = '/api/data/export/excel';
+        downloadLink.download = '';
+        downloadLink.style.display = 'none';
+        
+        document.body.appendChild(downloadLink);
+        
+        // Add event listeners to handle success/error
+        let downloadStarted = false;
+        
+        const checkDownload = setTimeout(() => {
+            if (!downloadStarted) {
+                this.showNotification('Descarga de Excel iniciada', 'success');
+                downloadStarted = true;
+            }
+        }, 1000);
+        
+        downloadLink.addEventListener('click', () => {
+            downloadStarted = true;
+            clearTimeout(checkDownload);
+            this.showNotification('Descargando archivo Excel...', 'success');
+        });
+        
+        // Trigger the download
+        try {
+            downloadLink.click();
+            
+            // Clean up
+            setTimeout(() => {
+                if (document.body.contains(downloadLink)) {
+                    document.body.removeChild(downloadLink);
+                }
+            }, 5000);
+            
+        } catch (error) {
+            this.showNotification('Error iniciando descarga: ' + error.message, 'error');
+            if (document.body.contains(downloadLink)) {
+                document.body.removeChild(downloadLink);
+            }
+        }
     }
     
     updateConnectionStatus(isConnected, data, errorMessage = '') {
@@ -864,6 +1076,479 @@ class JCIDashboard {
             element.textContent = value;
         }
     }
+    
+    updateSystemStatus(isActive) {
+        const statusDot = document.getElementById('system-status');
+        const statusText = document.getElementById('system-status-text');
+        
+        if (statusDot) {
+            statusDot.className = isActive ? 'status-dot status-active' : 'status-dot status-error';
+        }
+        if (statusText) {
+            statusText.textContent = isActive ? 'Operativo' : 'Detenido';
+        }
+    }
+    
+    updateScannerStatus(isConnected) {
+        const statusDot = document.getElementById('scanner-status');
+        const statusText = document.getElementById('scanner-status-text');
+        
+        if (statusDot) {
+            statusDot.className = isConnected ? 'status-dot status-active' : 'status-dot status-error';
+        }
+        if (statusText) {
+            statusText.textContent = isConnected ? 'Conectado' : 'Desconectado';
+        }
+    }
+    
+    updateCharts(chartData) {
+        if (!chartData) return;
+        
+        // Actualizar gráfica de progreso
+        if (this.charts.progress && chartData.progreso) {
+            this.charts.progress.data.labels = chartData.progreso.labels;
+            this.charts.progress.data.datasets[0].data = chartData.progreso.data;
+            this.charts.progress.update();
+        }
+        
+        // Actualizar gráfica de estados
+        if (this.charts.status && chartData.estados) {
+            this.charts.status.data.datasets[0].data = chartData.estados.data;
+            this.charts.status.update();
+        }
+        
+        // Actualizar gráfica de eficiencia por etapa
+        if (this.charts.stageEfficiency && chartData.eficiencia_etapas) {
+            this.charts.stageEfficiency.data.datasets[0].data = chartData.eficiencia_etapas.data;
+            this.charts.stageEfficiency.update();
+        }
+        
+        // Actualizar gráfica de timeline
+        if (this.charts.timeline && chartData.timeline) {
+            this.charts.timeline.data.labels = chartData.timeline.labels;
+            this.charts.timeline.data.datasets[0].data = chartData.timeline.efficiency;
+            this.charts.timeline.data.datasets[1].data = chartData.timeline.completed;
+            this.charts.timeline.update();
+        }
+    }
+    
+    // ===== FUNCIONES DE GESTIÓN DE DATOS =====
+    
+    handleFileUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        this.showNotification('Subiendo archivo...', 'info');
+        
+        fetch('/api/data/upload', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                this.showNotification('Archivo subido correctamente', 'success');
+                setTimeout(() => this.loadData(), 1000);
+            } else {
+                this.showNotification('Error: ' + result.message, 'error');
+            }
+        })
+        .catch(error => {
+            this.showNotification('Error de conexión: ' + error.message, 'error');
+        });
+        
+        // Limpiar input
+        event.target.value = '';
+    }
+    
+    showDataStructure() {
+        const modal = this.createModal('Estructura de Datos Excel/CSV', `
+            <div class="data-structure">
+                <h4>Formato requerido para Excel/CSV:</h4>
+                <div class="structure-example">
+barcode,product_name,product_type,status,current_stage
+fewygfyu3,Controlador HVAC Premium,HVAC_CONTROLLER,En Proceso,2
+fwe24gvfd,Sistema Batería Industrial,BATTERY_SYSTEM,En Proceso,4
+fdgffdwwd3,Switch Inteligente IoT,IOT_SWITCH,Completado,6
+
+Campos requeridos:
+- barcode: Código de barras único
+- product_name: Nombre del producto  
+- product_type: Tipo de producto
+- status: Estado (Pendiente/En Proceso/Completado)
+- current_stage: Etapa actual (1-6)
+
+Campos opcionales:
+- progress_percentage: Porcentaje de progreso (0-100)
+- quality_score: Puntuación de calidad (0-100)
+- operator_current: ID del operador actual
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="this.closest('.modal').style.display='none'">Cerrar</button>
+            </div>
+        `);
+        document.body.appendChild(modal);
+    }
+    
+    
+    // ===== FUNCIONES DE GESTIÓN DE TURNOS =====
+    
+    updateOperatorsList(operators) {
+        const container = document.getElementById('operators-list');
+        if (!container) return;
+        
+        container.innerHTML = '';
+        
+        Object.entries(operators).forEach(([id, operator]) => {
+            const operatorDiv = document.createElement('div');
+            operatorDiv.className = 'operator-item';
+            operatorDiv.innerHTML = `
+                <div class="operator-info">
+                    <div class="operator-name">${operator.name}</div>
+                    <div class="operator-details">${operator.shift} - ${operator.station}</div>
+                </div>
+                <div class="item-actions">
+                    <button class="btn btn-xs btn-warning" onclick="editOperator('${id}')">✏️</button>
+                    <button class="btn btn-xs btn-error" onclick="deleteOperator('${id}')">🗑️</button>
+                </div>
+            `;
+            container.appendChild(operatorDiv);
+        });
+    }
+    
+    updateStagesList() {
+        const container = document.getElementById('stages-list');
+        if (!container) return;
+        
+        const stages = [
+            {id: 1, name: 'Soldadura', description: 'Proceso de soldadura'},
+            {id: 2, name: 'Pulido', description: 'Acabado y pulido'},
+            {id: 3, name: 'Presión', description: 'Pruebas de presión'},
+            {id: 4, name: 'Calidad', description: 'Control de calidad'},
+            {id: 5, name: 'Pintura', description: 'Acabado final'},
+            {id: 6, name: 'Almacén', description: 'Almacenamiento'}
+        ];
+        
+        container.innerHTML = '';
+        
+        stages.forEach(stage => {
+            const stageDiv = document.createElement('div');
+            stageDiv.className = 'stage-item';
+            stageDiv.innerHTML = `
+                <div class="stage-info">
+                    <div class="stage-name">${stage.name}</div>
+                    <div class="stage-details">${stage.description}</div>
+                </div>
+                <div class="item-actions">
+                    <button class="btn btn-xs btn-warning" onclick="editStage(${stage.id})">✏️</button>
+                </div>
+            `;
+            container.appendChild(stageDiv);
+        });
+    }
+    
+    changeShift(shiftName) {
+        this.showNotification(`Cambiando turno a ${shiftName}...`, 'info');
+        
+        fetch('/api/data/change_shift', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({shift: shiftName})
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                this.showNotification(`Turno cambiado a ${shiftName}`, 'success');
+                this.updateElement('current-shift', shiftName);
+                this.updateElement('current-shift-display', shiftName);
+                setTimeout(() => this.loadData(), 500);
+            } else {
+                this.showNotification('Error cambiando turno: ' + result.message, 'error');
+            }
+        })
+        .catch(error => {
+            this.showNotification('Error de conexión: ' + error.message, 'error');
+        });
+    }
+    
+    editShiftSchedule() {
+        const modal = this.createModal('Editar Horarios de Turnos', `
+            <div class="form-group">
+                <label>Turno Día</label>
+                <input type="time" id="dia-start" value="06:00"> - 
+                <input type="time" id="dia-end" value="14:00">
+            </div>
+            <div class="form-group">
+                <label>Turno Tarde</label>
+                <input type="time" id="tarde-start" value="14:00"> - 
+                <input type="time" id="tarde-end" value="22:00">
+            </div>
+            <div class="form-group">
+                <label>Turno Noche</label>
+                <input type="time" id="noche-start" value="22:00"> - 
+                <input type="time" id="noche-end" value="06:00">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="this.closest('.modal').style.display='none'">Cancelar</button>
+                <button class="btn btn-primary" onclick="saveShiftSchedule()">Guardar</button>
+            </div>
+        `);
+        document.body.appendChild(modal);
+    }
+    
+    addOperator() {
+        const modal = this.createModal('Agregar Operador', `
+            <div class="form-group">
+                <label>Nombre Completo</label>
+                <input type="text" id="operator-name" placeholder="Ej: Juan Pérez">
+            </div>
+            <div class="form-group">
+                <label>Turno</label>
+                <select id="operator-shift">
+                    <option value="Día">Día</option>
+                    <option value="Tarde">Tarde</option>
+                    <option value="Noche">Noche</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Estación de Trabajo</label>
+                <select id="operator-station">
+                    <option value="Soldadura">Soldadura</option>
+                    <option value="Pulido">Pulido</option>
+                    <option value="Presión">Presión</option>
+                    <option value="Calidad">Calidad</option>
+                    <option value="Pintura">Pintura</option>
+                    <option value="Almacén">Almacén</option>
+                </select>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="this.closest('.modal').style.display='none'">Cancelar</button>
+                <button class="btn btn-success" onclick="saveOperator()">Guardar</button>
+            </div>
+        `);
+        document.body.appendChild(modal);
+    }
+    
+    editOperators() {
+        // Cargar operadores existentes para edición
+        const state_data = this.lastLoadedData;
+        const operators = state_data?.operadores || {};
+        
+        let operatorRows = '';
+        Object.entries(operators).forEach(([id, operator]) => {
+            operatorRows += `
+                <div class="form-row" data-operator-id="${id}">
+                    <input type="text" value="${operator.name}" placeholder="Nombre" class="operator-name-edit">
+                    <select class="operator-shift-edit">
+                        <option value="Día" ${operator.shift === 'Día' ? 'selected' : ''}>Día</option>
+                        <option value="Tarde" ${operator.shift === 'Tarde' ? 'selected' : ''}>Tarde</option>
+                        <option value="Noche" ${operator.shift === 'Noche' ? 'selected' : ''}>Noche</option>
+                    </select>
+                    <select class="operator-station-edit">
+                        <option value="Soldadura" ${operator.station === 'Soldadura' ? 'selected' : ''}>Soldadura</option>
+                        <option value="Pulido" ${operator.station === 'Pulido' ? 'selected' : ''}>Pulido</option>
+                        <option value="Presión" ${operator.station === 'Presión' ? 'selected' : ''}>Presión</option>
+                        <option value="Calidad" ${operator.station === 'Calidad' ? 'selected' : ''}>Calidad</option>
+                        <option value="Pintura" ${operator.station === 'Pintura' ? 'selected' : ''}>Pintura</option>
+                        <option value="Almacén" ${operator.station === 'Almacén' ? 'selected' : ''}>Almacén</option>
+                    </select>
+                    <button type="button" onclick="deleteOperatorRow('${id}')" class="btn btn-xs btn-error">🗑️</button>
+                </div>
+            `;
+        });
+        
+        const modal = this.createModal('Editar Operadores', `
+            <div class="operators-edit-container">
+                ${operatorRows}
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="this.closest('.modal').style.display='none'">Cancelar</button>
+                <button class="btn btn-success" onclick="saveAllOperators(this)">Guardar Cambios</button>
+            </div>
+        `);
+        document.body.appendChild(modal);
+    }
+    
+    addStage() {
+        this.showNotification('Las etapas son fijas en este sistema', 'info');
+    }
+    
+    editStages() {
+        const stages = [
+            {id: 1, name: 'Soldadura', description: 'Proceso de soldadura'},
+            {id: 2, name: 'Pulido', description: 'Acabado y pulido'},
+            {id: 3, name: 'Presión', description: 'Pruebas de presión'},
+            {id: 4, name: 'Calidad', description: 'Control de calidad'},
+            {id: 5, name: 'Pintura', description: 'Acabado final'},
+            {id: 6, name: 'Almacén', description: 'Almacenamiento'}
+        ];
+        
+        let stageRows = '';
+        stages.forEach(stage => {
+            stageRows += `
+                <div class="form-row" data-stage-id="${stage.id}">
+                    <label>Etapa ${stage.id}:</label>
+                    <input type="text" value="${stage.name}" placeholder="Nombre" class="stage-name-edit">
+                    <input type="text" value="${stage.description}" placeholder="Descripción" class="stage-description-edit">
+                </div>
+            `;
+        });
+        
+        const modal = this.createModal('Editar Etapas', `
+            <div class="stages-edit-container">
+                <p><strong>Nota:</strong> Las etapas son parte del flujo de producción estándar de Johnson Controls.</p>
+                ${stageRows}
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="this.closest('.modal').style.display='none'">Cancelar</button>
+                <button class="btn btn-success" onclick="saveAllStages(this)">Guardar Cambios</button>
+            </div>
+        `);
+        document.body.appendChild(modal);
+    }
+    
+    toggleManagement() {
+        const content = document.getElementById('management-content');
+        const toggleText = document.getElementById('management-toggle-text');
+        const toggleIcon = document.getElementById('management-toggle-icon');
+        
+        if (!content) return;
+        
+        const isVisible = content.style.display !== 'none';
+        
+        if (isVisible) {
+            content.style.display = 'none';
+            if (toggleText) toggleText.textContent = 'Mostrar Gestión';
+            if (toggleIcon) {
+                toggleIcon.textContent = '▼';
+                toggleIcon.classList.remove('expanded');
+            }
+        } else {
+            content.style.display = 'block';
+            if (toggleText) toggleText.textContent = 'Ocultar Gestión';
+            if (toggleIcon) {
+                toggleIcon.textContent = '▲';
+                toggleIcon.classList.add('expanded');
+            }
+            
+            // Cargar datos de operadores y etapas cuando se muestre
+            this.loadData();
+        }
+    }
+    
+    // ===== FUNCIONES AUXILIARES =====
+    
+    createModal(title, content) {
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.style.display = 'block';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <h2>${title}</h2>
+                ${content}
+            </div>
+        `;
+        
+        // Cerrar modal al hacer clic fuera
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+                setTimeout(() => modal.remove(), 300);
+            }
+        });
+        
+        return modal;
+    }
+    
+    showExportModal(exportResult) {
+        const data = exportResult.data || [];
+        
+        let tableRows = '';
+        data.forEach(item => {
+            tableRows += `
+                <tr>
+                    <td>${item.Codigo}</td>
+                    <td>${item.Producto}</td>
+                    <td>${item.Estado}</td>
+                    <td>${item.Etapa_Actual}</td>
+                    <td>${item['Progreso_%']}%</td>
+                    <td>${item['Calidad_%']}%</td>
+                </tr>
+            `;
+        });
+        
+        const modal = this.createModal('Reporte Excel Generado', `
+            <div class="export-summary">
+                <p><strong>Total de productos:</strong> ${exportResult.total_products}</p>
+                <p><strong>Fecha de exportación:</strong> ${new Date(exportResult.export_timestamp).toLocaleString('es-MX')}</p>
+            </div>
+            
+            <div class="export-preview">
+                <h4>Vista previa de datos exportados:</h4>
+                <table class="export-table">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Producto</th>
+                            <th>Estado</th>
+                            <th>Etapa</th>
+                            <th>Progreso</th>
+                            <th>Calidad</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tableRows}
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="copyExportData()">Copiar Datos</button>
+                <button class="btn btn-secondary" onclick="this.closest('.modal').style.display='none'">Cerrar</button>
+            </div>
+        `);
+        
+        document.body.appendChild(modal);
+        
+        // Almacenar datos para función de copia
+        this.lastExportData = data;
+    }
+    
+    updateCurrentShiftByTime() {
+        const now = new Date();
+        const currentHour = now.getHours();
+        const currentMinute = now.getMinutes();
+        const currentTime = currentHour * 100 + currentMinute; // Formato HHMM
+        
+        let currentShift = 'Día'; // Default
+        
+        // Día: 06:00 - 14:00 (600 - 1400)
+        // Tarde: 14:00 - 22:00 (1400 - 2200)
+        // Noche: 22:00 - 06:00 (2200 - 600)
+        
+        if (currentTime >= 600 && currentTime < 1400) {
+            currentShift = 'Día';
+        } else if (currentTime >= 1400 && currentTime < 2200) {
+            currentShift = 'Tarde';
+        } else {
+            currentShift = 'Noche';
+        }
+        
+        // Actualizar en el header
+        this.updateElement('current-shift', currentShift);
+        this.updateElement('current-shift-display', currentShift);
+        
+        // Actualizar visualmente si el turno cambió
+        const lastShift = this.currentShift;
+        if (lastShift && lastShift !== currentShift) {
+            this.showNotification(`Turno cambiado automáticamente a: ${currentShift}`, 'info');
+        }
+        this.currentShift = currentShift;
+    }
 }
 
 // Funciones globales para mantener compatibilidad con HTML
@@ -886,7 +1571,65 @@ function exportReport() {
 }
 
 function toggleAnalytics() {
-    if (dashboard) dashboard.toggleAnalytics();
+    console.log('Función global toggleAnalytics() llamada');
+    if (dashboard) {
+        dashboard.toggleAnalytics();
+    } else {
+        console.error('Dashboard no está inicializado');
+    }
+}
+
+function handleFileUpload(event) {
+    if (dashboard) dashboard.handleFileUpload(event);
+}
+
+function showDataStructure() {
+    if (dashboard) dashboard.showDataStructure();
+}
+
+function changeShift(shift) {
+    if (dashboard) dashboard.changeShift(shift);
+}
+
+function editShiftSchedule() {
+    if (dashboard) dashboard.editShiftSchedule();
+}
+
+function addOperator() {
+    if (dashboard) dashboard.addOperator();
+}
+
+function editOperators() {
+    if (dashboard) dashboard.editOperators();
+}
+
+function addStage() {
+    if (dashboard) dashboard.addStage();
+}
+
+function editStages() {
+    if (dashboard) dashboard.editStages();
+}
+
+function toggleManagement() {
+    if (dashboard) dashboard.toggleManagement();
+}
+
+function copyExportData() {
+    if (dashboard && dashboard.lastExportData) {
+        const csvData = dashboard.lastExportData.map(item => 
+            `${item.Codigo},${item.Producto},${item.Estado},${item.Etapa_Actual},${item['Progreso_%']},${item['Calidad_%']}`
+        ).join('\n');
+        
+        const header = 'Código,Producto,Estado,Etapa,Progreso,Calidad\n';
+        const fullData = header + csvData;
+        
+        navigator.clipboard.writeText(fullData).then(() => {
+            dashboard.showNotification('Datos copiados al portapapeles', 'success');
+        }).catch(() => {
+            dashboard.showNotification('Error al copiar datos', 'error');
+        });
+    }
 }
 
 // Inicialización cuando se carga el DOM

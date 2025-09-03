@@ -57,6 +57,12 @@ class ScannerManager:
         # Hilos de procesamiento
         self.scanner_thread = None
         self.command_thread = None
+        self.connection_monitor_thread = None
+        
+        # Estado de conexión del escáner
+        self.scanner_connected = False
+        self.last_connection_check = None
+        self.connection_check_interval = 3  # segundos
         
         # Callbacks para eventos
         self.scan_callbacks: Dict[str, Callable] = {}
@@ -115,9 +121,11 @@ class ScannerManager:
             )
             
             if self.scanner.connect():
+                self.scanner_connected = True  # Establecer estado inicial
                 self.logger.info(f"Escáner Zebra conectado en {hardware_config.serial_port}")
                 return True
             else:
+                self.scanner_connected = False  # Establecer estado inicial
                 self.logger.warning("No se pudo conectar al escáner")
                 return False
                 
@@ -171,6 +179,14 @@ class ScannerManager:
         )
         self.command_thread.start()
         self.logger.info("Hilo de procesamiento de comandos iniciado")
+        
+        # Hilo para monitoreo de conexión del escáner
+        self.connection_monitor_thread = threading.Thread(
+            target=self._connection_monitoring_loop,
+            daemon=True
+        )
+        self.connection_monitor_thread.start()
+        self.logger.info("Hilo de monitoreo de conexión iniciado")
     
     def _scanner_reading_loop(self):
         """Bucle de lectura del escáner en hilo separado"""
@@ -224,6 +240,140 @@ class ScannerManager:
                     time.sleep(1)
         
         self.logger.info("Bucle de procesamiento de comandos terminado")
+    
+    def _connection_monitoring_loop(self):
+        """Bucle de monitoreo de conexión del escáner"""
+        self.logger.info("Iniciando bucle de monitoreo de conexión")
+        
+        while self.is_running:
+            try:
+                current_time = datetime.now()
+                
+                # Verificar conexión cada cierto intervalo
+                if (self.last_connection_check is None or 
+                    (current_time - self.last_connection_check).total_seconds() >= self.connection_check_interval):
+                    
+                    self.logger.debug(f"Verificando estado del escáner... (intervalo: {self.connection_check_interval}s)")
+                    
+                    # Verificar estado actual del escáner
+                    was_connected = self.scanner_connected
+                    is_connected = self._check_scanner_connection()
+                    
+                    self.logger.debug(f"Estado anterior: {was_connected}, Estado actual: {is_connected}")
+                    
+                    if was_connected != is_connected:
+                        # El estado de conexión cambió
+                        self.scanner_connected = is_connected
+                        status_text = "conectado" if is_connected else "desconectado"
+                        self.logger.info(f"🔄 Estado del escáner cambió: {status_text}")
+                        
+                        # Actualizar JSON con el estado real
+                        self.data_sync.update_scanner_status(is_connected)
+                        
+                        if not is_connected:
+                            self.logger.warning("⚠️ Escáner desconectado - Verificar conexión física")
+                        else:
+                            self.logger.info("✅ Escáner reconectado exitosamente")
+                    else:
+                        # Log cada cierto tiempo para confirmar que está funcionando
+                        self.logger.debug(f"Estado del escáner sin cambios: {'conectado' if is_connected else 'desconectado'}")
+                    
+                    self.last_connection_check = current_time
+                
+                time.sleep(1)  # Verificar cada segundo
+                
+            except Exception as e:
+                if self.is_running:
+                    self.logger.error(f"❌ Error monitoreando conexión del escáner: {e}")
+                    import traceback
+                    self.logger.error(f"Traceback: {traceback.format_exc()}")
+                    time.sleep(2)
+        
+        self.logger.info("Bucle de monitoreo de conexión terminado")
+    
+    def _check_scanner_connection(self) -> bool:
+        """Verificar si el escáner está realmente conectado"""
+        try:
+            # Si no hay scanner inicializado, intentar reconectar
+            if not self.scanner:
+                self.logger.debug("No hay scanner inicializado, intentando reconectar...")
+                return self._try_reconnect_scanner()
+            
+            # Usar el método test_connection del scanner si existe
+            if hasattr(self.scanner, 'test_connection'):
+                connection_ok = self.scanner.test_connection()
+                self.logger.debug(f"test_connection() retornó: {connection_ok}")
+                
+                # Si la conexión falló, intentar reinicializar el scanner
+                if not connection_ok:
+                    self.logger.info("SCANNER RECONNECT: Conexión falló, intentando reinicializar scanner...")
+                    # Desconectar scanner anterior
+                    try:
+                        self.scanner.disconnect()
+                        self.logger.info("SCANNER RECONNECT: Scanner anterior desconectado")
+                    except Exception as e:
+                        self.logger.info(f"SCANNER RECONNECT: Error desconectando scanner anterior: {e}")
+                    self.scanner = None
+                    
+                    # Intentar reconectar
+                    self.logger.info("SCANNER RECONNECT: Iniciando proceso de reconexión...")
+                    result = self._try_reconnect_scanner()
+                    self.logger.info(f"SCANNER RECONNECT: Resultado de reconexión: {result}")
+                    return result
+                
+                return connection_ok
+            
+            # Verificar si el estado interno del scanner indica conexión
+            if hasattr(self.scanner, 'is_connected'):
+                is_conn = self.scanner.is_connected()
+                self.logger.debug(f"is_connected() retornó: {is_conn}")
+                return is_conn
+            
+            # Verificar si el serial interface está conectado
+            if hasattr(self.scanner, 'serial_interface') and self.scanner.serial_interface:
+                if hasattr(self.scanner.serial_interface, 'test_connection'):
+                    serial_ok = self.scanner.serial_interface.test_connection()
+                    self.logger.debug(f"serial_interface.test_connection() retornó: {serial_ok}")
+                    return serial_ok
+            
+            self.logger.debug("No se pudo verificar conexión - métodos no disponibles")
+            return False
+            
+        except Exception as e:
+            self.logger.debug(f"Error verificando conexión del escáner: {e}")
+            return False
+    
+    def _try_reconnect_scanner(self) -> bool:
+        """Intentar reconectar el escáner si no está inicializado"""
+        try:
+            self.logger.info("SCANNER RECONNECT: Intentando reinicializar scanner...")
+            hardware_config = self.config.hardware
+            self.logger.info(f"SCANNER RECONNECT: Puerto: {hardware_config.serial_port}, Baud: {hardware_config.baud_rate}")
+            
+            # Crear nuevo scanner
+            from ..hardware.zebra_scanner import ZebraScanner
+            new_scanner = ZebraScanner(
+                port=hardware_config.serial_port,
+                baud_rate=hardware_config.baud_rate,
+                timeout=hardware_config.timeout
+            )
+            self.logger.info("SCANNER RECONNECT: Nuevo objeto scanner creado")
+            
+            # Intentar conectar
+            self.logger.info("SCANNER RECONNECT: Intentando conectar...")
+            if new_scanner.connect():
+                self.scanner = new_scanner
+                self.logger.info("SCANNER RECONNECT: Scanner reconectado exitosamente!")
+                return True
+            else:
+                self.logger.info("SCANNER RECONNECT: Fallo al conectar el nuevo scanner")
+                return False
+                
+        except Exception as e:
+            self.logger.error(f"SCANNER RECONNECT: Error intentando reconectar scanner: {e}")
+            import traceback
+            self.logger.error(f"SCANNER RECONNECT: Traceback: {traceback.format_exc()}")
+            return False
     
     def _process_scan_event(self, scan_event: ScanEvent):
         """Procesar evento de escaneo"""
@@ -426,7 +576,7 @@ class ScannerManager:
         return {
             'is_running': self.is_running,
             'current_stage': self.current_stage,
-            'scanner_connected': self.scanner and self.scanner.is_connected(),
+            'scanner_connected': self.scanner_connected,  # Usar el estado monitoreado en tiempo real
             'products_count': len(self.products),
             'session_stats': self.session_stats,
             'error_count': self.error_count
@@ -548,6 +698,9 @@ class ScannerManager:
         
         if self.command_thread and self.command_thread.is_alive():
             self.command_thread.join(timeout=2)
+        
+        if self.connection_monitor_thread and self.connection_monitor_thread.is_alive():
+            self.connection_monitor_thread.join(timeout=2)
         
         # Sincronizar estado final
         self.sync_system_state()
