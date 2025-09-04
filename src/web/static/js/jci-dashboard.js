@@ -455,9 +455,10 @@ class JCIDashboard {
         }
         
         container.innerHTML = insights.map(insight => `
-            <div class="insight-card">
+            <div class="insight-card ${insight.type}">
                 <div class="insight-title">${insight.title}</div>
-                <div class="insight-text">${insight.text}</div>
+                <div class="insight-text">${insight.description || insight.text || ''}</div>
+                ${insight.action ? `<div class="insight-action">Recomendación: ${insight.action}</div>` : ''}
             </div>
         `).join('');
     }
@@ -861,15 +862,15 @@ class JCIDashboard {
         try {
             this.showNotification(`Cambiando a etapa ${etapa}`, 'warning');
             
-            // Intentar endpoint mejorado primero
-            let endpoint = '/api/stage_change_enhanced';
+            // Usar el nuevo endpoint que funciona correctamente
+            let endpoint = '/api/data/stage_control';
             let response = await fetch(endpoint, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({etapa: etapa})
+                body: JSON.stringify({stage: etapa})
             });
             
-            // Fallback a endpoint básico
+            // Fallback a endpoint básico si el nuevo no está disponible
             if (!response.ok && response.status === 404) {
                 endpoint = '/api/change_stage';
                 response = await fetch(endpoint, {
@@ -882,10 +883,17 @@ class JCIDashboard {
             const result = await response.json();
             
             if (response.ok && result.success) {
-                this.showNotification(`Etapa cambiada a ${etapa}: ${result.stage_name}`, 'success');
+                // Obtener el nombre de la etapa desde el mapeo local
+                const stageNames = {
+                    1: 'Soldadura', 2: 'Pulido', 3: 'Presión',
+                    4: 'Calidad', 5: 'Pintura', 6: 'Almacén'
+                };
+                const stageName = stageNames[etapa] || `Etapa ${etapa}`;
+                
+                this.showNotification(`Etapa cambiada a ${etapa}: ${stageName}`, 'success');
                 
                 // Actualizar indicadores visuales
-                this.updateStageIndicators(etapa, result.stage_name);
+                this.updateStageIndicators(etapa, stageName);
                 
                 setTimeout(() => this.loadData(), 500);
             } else {
@@ -1220,35 +1228,57 @@ Campos opcionales:
         });
     }
     
-    updateStagesList() {
+    async updateStagesList() {
         const container = document.getElementById('stages-list');
         if (!container) return;
         
-        const stages = [
-            {id: 1, name: 'Soldadura', description: 'Proceso de soldadura'},
-            {id: 2, name: 'Pulido', description: 'Acabado y pulido'},
-            {id: 3, name: 'Presión', description: 'Pruebas de presión'},
-            {id: 4, name: 'Calidad', description: 'Control de calidad'},
-            {id: 5, name: 'Pintura', description: 'Acabado final'},
-            {id: 6, name: 'Almacén', description: 'Almacenamiento'}
-        ];
-        
-        container.innerHTML = '';
-        
-        stages.forEach(stage => {
-            const stageDiv = document.createElement('div');
-            stageDiv.className = 'stage-item';
-            stageDiv.innerHTML = `
-                <div class="stage-info">
-                    <div class="stage-name">${stage.name}</div>
-                    <div class="stage-details">${stage.description}</div>
-                </div>
-                <div class="item-actions">
-                    <button class="btn btn-xs btn-warning" onclick="editStage(${stage.id})">✏️</button>
-                </div>
-            `;
-            container.appendChild(stageDiv);
-        });
+        try {
+            // Obtener etapas dinámicamente desde el servidor
+            const response = await fetch('/api/data/stages');
+            let stages = [];
+            
+            if (response.ok) {
+                const result = await response.json();
+                stages = result.stages || [];
+            } else {
+                // Fallback a etapas por defecto si no se puede obtener del servidor
+                stages = [
+                    {id: 1, name: 'Soldadura', description: 'Proceso de soldadura', is_default: true},
+                    {id: 2, name: 'Pulido', description: 'Acabado y pulido', is_default: true},
+                    {id: 3, name: 'Presión', description: 'Pruebas de presión', is_default: true},
+                    {id: 4, name: 'Calidad', description: 'Control de calidad', is_default: true},
+                    {id: 5, name: 'Pintura', description: 'Acabado final', is_default: true},
+                    {id: 6, name: 'Almacén', description: 'Almacenamiento', is_default: true}
+                ];
+            }
+            
+            container.innerHTML = '';
+            
+            stages.forEach(stage => {
+                const stageDiv = document.createElement('div');
+                stageDiv.className = 'stage-item';
+                
+                // Determinar si se puede eliminar (solo etapas personalizadas, no las básicas)
+                const canDelete = !stage.is_default && stage.id > 6;
+                
+                stageDiv.innerHTML = `
+                    <div class="stage-info">
+                        <div class="stage-name">${stage.name}</div>
+                        <div class="stage-details">${stage.description}</div>
+                        ${stage.is_default ? '<div class="stage-badge">Sistema</div>' : '<div class="stage-badge custom">Personalizada</div>'}
+                    </div>
+                    <div class="item-actions">
+                        <button class="btn btn-xs btn-warning" onclick="editStage(${stage.id})" title="Editar">✏️</button>
+                        ${canDelete ? `<button class="btn btn-xs btn-error" onclick="deleteStage(${stage.id})" title="Eliminar">🗑️</button>` : ''}
+                    </div>
+                `;
+                container.appendChild(stageDiv);
+            });
+            
+        } catch (error) {
+            console.error('Error cargando etapas:', error);
+            container.innerHTML = '<div class="loading">Error cargando etapas</div>';
+        }
     }
     
     changeShift(shiftName) {
@@ -1373,8 +1403,179 @@ Campos opcionales:
         document.body.appendChild(modal);
     }
     
-    addStage() {
-        this.showNotification('Las etapas son fijas en este sistema', 'info');
+    async addStage() {
+        const modal = this.createModal('Agregar Nueva Etapa', `
+            <div class="form-group">
+                <label>Nombre de la Etapa</label>
+                <input type="text" id="stage-name" placeholder="Ej: Ensamble">
+            </div>
+            <div class="form-group">
+                <label>Descripción</label>
+                <input type="text" id="stage-description" placeholder="Descripción de la etapa">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="this.closest('.modal').style.display='none'">Cancelar</button>
+                <button class="btn btn-success" onclick="saveNewStage()">Agregar Etapa</button>
+            </div>
+        `);
+        document.body.appendChild(modal);
+    }
+    
+    async saveNewStage() {
+        const stageName = document.getElementById('stage-name').value.trim();
+        const stageDescription = document.getElementById('stage-description').value.trim();
+        
+        if (!stageName) {
+            this.showNotification('El nombre de la etapa es requerido', 'error');
+            return;
+        }
+        
+        try {
+            const response = await fetch('/api/data/stages', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    name: stageName,
+                    description: stageDescription
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok && result.success) {
+                this.showNotification(result.message, 'success');
+                // Cerrar modal
+                const modal = document.querySelector('.modal');
+                if (modal) modal.style.display = 'none';
+                // Recargar datos para mostrar la nueva etapa
+                this.loadData();
+                this.updateStagesList();
+            } else {
+                this.showNotification('Error: ' + result.error, 'error');
+            }
+            
+        } catch (error) {
+            this.showNotification('Error de conexión: ' + error.message, 'error');
+        }
+    }
+    
+    async deleteStage(stageId) {
+        if (stageId <= 6) {
+            this.showNotification('No se pueden eliminar las etapas básicas del sistema', 'warning');
+            return;
+        }
+        
+        if (!confirm('¿Está seguro de eliminar esta etapa?')) {
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/api/data/stages/${stageId}`, {
+                method: 'DELETE'
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok && result.success) {
+                this.showNotification(result.message, 'success');
+                this.loadData();
+                this.updateStagesList();
+            } else {
+                this.showNotification('Error: ' + result.error, 'error');
+            }
+            
+        } catch (error) {
+            this.showNotification('Error de conexión: ' + error.message, 'error');
+        }
+    }
+    
+    async editStage(stageId) {
+        try {
+            // Obtener datos actuales de la etapa
+            const response = await fetch('/api/data/stages');
+            if (!response.ok) {
+                throw new Error('No se pudieron obtener los datos de las etapas');
+            }
+            
+            const result = await response.json();
+            const stages = result.stages || [];
+            const stageToEdit = stages.find(stage => stage.id == stageId);
+            
+            if (!stageToEdit) {
+                this.showNotification('Etapa no encontrada', 'error');
+                return;
+            }
+            
+            const isSystemStage = stageId <= 6;
+            const editWarning = isSystemStage 
+                ? '<p class="warning-text">⚠️ <strong>Advertencia:</strong> Esta es una etapa básica del sistema. Los cambios pueden afectar el flujo de producción.</p>'
+                : '';
+            
+            const modal = this.createModal(`Editar Etapa: ${stageToEdit.name}`, `
+                ${editWarning}
+                <div class="form-group">
+                    <label>Nombre de la Etapa</label>
+                    <input type="text" id="edit-stage-name" value="${stageToEdit.name}" placeholder="Nombre de la etapa">
+                </div>
+                <div class="form-group">
+                    <label>Descripción</label>
+                    <input type="text" id="edit-stage-description" value="${stageToEdit.description || ''}" placeholder="Descripción de la etapa">
+                </div>
+                <div class="form-group">
+                    <label>ID de la Etapa</label>
+                    <input type="number" id="edit-stage-id" value="${stageToEdit.id}" readonly class="readonly-input">
+                    <small>El ID de la etapa no se puede modificar</small>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" onclick="this.closest('.modal').style.display='none'">Cancelar</button>
+                    <button class="btn btn-success" onclick="saveEditedStage(${stageId})">Guardar Cambios</button>
+                </div>
+            `);
+            
+            document.body.appendChild(modal);
+            
+        } catch (error) {
+            this.showNotification('Error al cargar datos de la etapa: ' + error.message, 'error');
+        }
+    }
+    
+    async saveEditedStage(stageId) {
+        const stageName = document.getElementById('edit-stage-name').value.trim();
+        const stageDescription = document.getElementById('edit-stage-description').value.trim();
+        
+        if (!stageName) {
+            this.showNotification('El nombre de la etapa es requerido', 'error');
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/api/data/stages/${stageId}`, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    name: stageName,
+                    description: stageDescription
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok && result.success) {
+                this.showNotification(result.message, 'success');
+                // Cerrar modal
+                const modal = document.querySelector('.modal');
+                if (modal) modal.style.display = 'none';
+                
+                // Recargar datos para mostrar los cambios
+                this.loadData();
+                this.updateStagesList();
+            } else {
+                this.showNotification('Error: ' + result.error, 'error');
+            }
+            
+        } catch (error) {
+            this.showNotification('Error de conexión: ' + error.message, 'error');
+        }
     }
     
     editStages() {
@@ -1609,6 +1810,22 @@ function addStage() {
 
 function editStages() {
     if (dashboard) dashboard.editStages();
+}
+
+function editStage(stageId) {
+    if (dashboard) dashboard.editStage(stageId);
+}
+
+function saveNewStage() {
+    if (dashboard) dashboard.saveNewStage();
+}
+
+function deleteStage(stageId) {
+    if (dashboard) dashboard.deleteStage(stageId);
+}
+
+function saveEditedStage(stageId) {
+    if (dashboard) dashboard.saveEditedStage(stageId);
 }
 
 function toggleManagement() {

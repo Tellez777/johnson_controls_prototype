@@ -106,7 +106,14 @@ body {
 }
 
 .jci-logo {
-    height: 60px;
+    height: 130px;
+    width: auto;
+    filter: brightness(0) invert(1);
+    transition: transform 0.3s ease;
+}
+
+.jci-logo-footer {
+    height: 80px;
     width: auto;
     filter: brightness(0) invert(1);
     transition: transform 0.3s ease;
@@ -120,6 +127,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 4px;
+    align-items: flex-start;
 }
 
 .company-name {
@@ -1361,4 +1369,31 @@ body {
 
 .export-table tbody tr:nth-child(even) {
     background: var(--bg-secondary);
+}
+
+/* Estilos para edición de etapas */
+.readonly-input {
+    background-color: #f5f5f5 !important;
+    color: #666 !important;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.warning-text {
+    background-color: #fff3cd;
+    border: 1px solid #ffeaa7;
+    color: #856404;
+    padding: 0.8rem;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+.form-group small {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.8rem;
+    color: #666;
+    font-style: italic;
+}
 }

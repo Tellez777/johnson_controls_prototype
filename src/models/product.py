@@ -363,6 +363,45 @@ JCI_SAMPLE_PRODUCTS = [
         'target_cycle_time': 380  # 6.3 minutos
     },
     {
+        'barcode': 'fewygfyu3',
+        'part_number': 'HVAC-CTL-TEST-001',
+        'product_name': 'Controlador HVAC Premium',
+        'product_family': 'Controles HVAC',
+        'work_order': 'WO-TEST-0001',
+        'batch_number': 'BTH-TEST001',
+        'serial_number': 'SNTEST001',
+        'customer_code': 'TEST-MX',
+        'revision': 'Rev-A',
+        'specification': 'JCI-SPEC-HVAC-TEST-A',
+        'target_cycle_time': 300  # 5 minutos
+    },
+    {
+        'barcode': 'fwe24gvfd',
+        'part_number': 'BATT-SYS-TEST-002',
+        'product_name': 'Sistema Batería Industrial',
+        'product_family': 'Sistemas de Energía',
+        'work_order': 'WO-TEST-0002',
+        'batch_number': 'BTH-TEST002',
+        'serial_number': 'SNTEST002',
+        'customer_code': 'TEST-MX',
+        'revision': 'Rev-A',
+        'specification': 'JCI-SPEC-BATT-TEST-A',
+        'target_cycle_time': 280  # 4.7 minutos
+    },
+    {
+        'barcode': 'fdgffdwwd3',
+        'part_number': 'IOT-SWT-TEST-003',
+        'product_name': 'Switch Inteligente IoT',
+        'product_family': 'Dispositivos IoT',
+        'work_order': 'WO-TEST-0003',
+        'batch_number': 'BTH-TEST003',
+        'serial_number': 'SNTEST003',
+        'customer_code': 'TEST-MX',
+        'revision': 'Rev-A',
+        'specification': 'JCI-SPEC-IOT-TEST-A',
+        'target_cycle_time': 250  # 4.2 minutos
+    },
+    {
         'barcode': 'JCI240003C',
         'part_number': 'INT-SWT-2024-003',
         'product_name': 'Switch Inteligente Interior',
@@ -374,5 +413,84 @@ JCI_SAMPLE_PRODUCTS = [
         'revision': 'Rev-A',
         'specification': 'JCI-SPEC-INT-2024-C',
         'target_cycle_time': 300  # 5 minutos
+    },
+    # 6 productos adicionales para ampliar el catálogo
+    {
+        'barcode': 'ther4mosta7',
+        'part_number': 'THERM-ADV-2024-004',
+        'product_name': 'Termostato Avanzado Digital',
+        'product_family': 'Controles de Temperatura',
+        'work_order': 'WO-2024-0159',
+        'batch_number': 'BTH-240004',
+        'serial_number': 'SN240004001',
+        'customer_code': 'NISSAN-MX',
+        'revision': 'Rev-B',
+        'specification': 'JCI-SPEC-THERM-2024-B',
+        'target_cycle_time': 350  # 5.8 minutos
+    },
+    {
+        'barcode': 'sens0r9air2',
+        'part_number': 'AIR-SENS-2024-005',
+        'product_name': 'Sensor Calidad de Aire CO2',
+        'product_family': 'Sensores Ambientales',
+        'work_order': 'WO-2024-0160',
+        'batch_number': 'BTH-240005',
+        'serial_number': 'SN240005001',
+        'customer_code': 'VW-MX',
+        'revision': 'Rev-C',
+        'specification': 'JCI-SPEC-AIR-2024-C',
+        'target_cycle_time': 220  # 3.7 minutos
+    },
+    {
+        'barcode': 'act8uator5v',
+        'part_number': 'ACT-HVAC-2024-006',
+        'product_name': 'Actuador HVAC Eléctrico',
+        'product_family': 'Actuadores',
+        'work_order': 'WO-2024-0161',
+        'batch_number': 'BTH-240006',
+        'serial_number': 'SN240006001',
+        'customer_code': 'BMW-MX',
+        'revision': 'Rev-A',
+        'specification': 'JCI-SPEC-ACT-2024-A',
+        'target_cycle_time': 290  # 4.8 minutos
+    },
+    {
+        'barcode': 'disp1ay4led',
+        'part_number': 'DISP-LED-2024-007',
+        'product_name': 'Display LED Multifunción',
+        'product_family': 'Interfaces Usuario',
+        'work_order': 'WO-2024-0162',
+        'batch_number': 'BTH-240007',
+        'serial_number': 'SN240007001',
+        'customer_code': 'TESLA-MX',
+        'revision': 'Rev-D',
+        'specification': 'JCI-SPEC-DISP-2024-D',
+        'target_cycle_time': 410  # 6.8 minutos
+    },
+    {
+        'barcode': 'valve6flow3',
+        'part_number': 'VALVE-FLOW-2024-008',
+        'product_name': 'Válvula Control de Flujo',
+        'product_family': 'Válvulas de Control',
+        'work_order': 'WO-2024-0163',
+        'batch_number': 'BTH-240008',
+        'serial_number': 'SN240008001',
+        'customer_code': 'AUDI-MX',
+        'revision': 'Rev-B',
+        'specification': 'JCI-SPEC-VALVE-2024-B',
+        'target_cycle_time': 365  # 6.1 minutos
+    },
+    {
+        'barcode': 'relay8power1',
+        'part_number': 'RELAY-PWR-2024-009',
+        'product_name': 'Relay de Potencia Industrial',
+        'product_family': 'Componentes Eléctricos',
+        'work_order': 'WO-2024-0164',
+        'batch_number': 'BTH-240009',
+        'serial_number': 'SN240009001',
+        'customer_code': 'MERC-MX',
+        'revision': 'Rev-A',
+        'specification': 'JCI-SPEC-RELAY-2024-A',
+        'target_cycle_time': 180  # 3.0 minutos
     }
 ]

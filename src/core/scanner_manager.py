@@ -83,17 +83,17 @@ class ScannerManager:
         try:
             self.logger.info("Iniciando sistema de escaneo Johnson Controls...")
             
-            # Cargar productos existentes
+            # Inicializar servicios PRIMERO (incluye sincronización de datos)
+            self.data_sync.initialize()
+            self.analytics.initialize()
+            self.notifications.initialize()
+            
+            # Cargar productos existentes DESPUÉS de la sincronización
             self._load_existing_products()
             
             # Inicializar hardware
             if not self._initialize_hardware():
                 self.logger.warning("Hardware no disponible - Modo simulación activado")
-            
-            # Inicializar servicios
-            self.data_sync.initialize()
-            self.analytics.initialize()
-            self.notifications.initialize()
             
             # Iniciar hilos de procesamiento
             self._start_processing_threads()
@@ -138,11 +138,15 @@ class ScannerManager:
         try:
             stored_products = self.data_sync.load_products()
             
+            # Cargar productos existentes
             for product_data in stored_products:
                 product = JCIProduct.from_dict(product_data)
                 self.products[product.barcode] = product
             
             self.logger.info(f"Cargados {len(self.products)} productos existentes")
+            
+            # Siempre asegurar que todos los productos de muestra estén disponibles
+            self._ensure_all_sample_products()
             
         except Exception as e:
             self.logger.error(f"Error cargando productos: {e}")
@@ -158,6 +162,26 @@ class ScannerManager:
             self.products[product.barcode] = product
         
         self.logger.info(f"Creados {len(JCI_SAMPLE_PRODUCTS)} productos de muestra")
+    
+    def _ensure_all_sample_products(self):
+        """Asegurar que todos los productos de muestra estén disponibles"""
+        from ..models.product import JCI_SAMPLE_PRODUCTS
+        
+        added_count = 0
+        for sample_data in JCI_SAMPLE_PRODUCTS:
+            barcode = sample_data['barcode']
+            if barcode not in self.products:
+                product = JCIProduct(**sample_data)
+                self.products[product.barcode] = product
+                added_count += 1
+                self.logger.info(f"Agregado producto faltante: {barcode} - {product.product_name}")
+        
+        if added_count > 0:
+            self.logger.info(f"Se agregaron {added_count} productos nuevos al catálogo")
+            # Guardar los cambios
+            self.data_sync.save_products(list(self.products.values()))
+        else:
+            self.logger.info(f"Todos los productos de muestra ({len(JCI_SAMPLE_PRODUCTS)}) ya están disponibles")
     
     def _start_processing_threads(self):
         """Iniciar hilos de procesamiento"""
@@ -363,6 +387,19 @@ class ScannerManager:
             self.logger.info("SCANNER RECONNECT: Intentando conectar...")
             if new_scanner.connect():
                 self.scanner = new_scanner
+                
+                # Reiniciar el bucle de lectura si no está activo
+                self.logger.debug(f"SCANNER RECONNECT: Verificando estado del hilo de lectura...")
+                has_thread = hasattr(self, 'scanning_thread')
+                thread_alive = self.scanning_thread.is_alive() if has_thread else False
+                self.logger.debug(f"SCANNER RECONNECT: has_thread={has_thread}, thread_alive={thread_alive}")
+                
+                if not has_thread or not thread_alive:
+                    self.logger.info("SCANNER RECONNECT: Reiniciando bucle de lectura...")
+                    self._start_scanning_thread()
+                else:
+                    self.logger.info("SCANNER RECONNECT: Hilo de lectura ya está activo, no se reinicia")
+                
                 self.logger.info("SCANNER RECONNECT: Scanner reconectado exitosamente!")
                 return True
             else:
