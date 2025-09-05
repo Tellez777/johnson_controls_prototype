@@ -76,12 +76,13 @@ class WebApplicationExtension:
                 data = request.get_json()
                 codigo = data.get('codigo')
                 
-                # Validar códigos Johnson Controls
-                valid_codes = ['JCI240001A', 'JCI240002B', 'JCI240003C']
+                # Validar códigos Johnson Controls - cargar códigos desde el sistema
+                current_data = self._load_system_state()
+                valid_codes = list(current_data.get('products', {}).keys())
                 if codigo not in valid_codes:
                     return jsonify({
                         'success': False, 
-                        'message': f'Código inválido. Usar: {", ".join(valid_codes)}'
+                        'message': f'Código inválido. Códigos válidos: {", ".join(valid_codes[:5])}{"..." if len(valid_codes) > 5 else ""}'
                     }), 400
                 
                 # Simular actualización de datos
@@ -380,25 +381,116 @@ class WebApplicationExtension:
         return insights
     
     def _simulate_enhanced_scan(self, codigo):
-        """Simulación mejorada de escaneo"""
-        # En sistema real, esto actualizaría la base de datos
-        # Por ahora simulamos la respuesta
-        
-        productos_info = {
-            'JCI240001A': {'nombre': 'Controlador HVAC Inteligente', 'familia': 'HVAC-CTL-2024-001'},
-            'JCI240002B': {'nombre': 'Sistema de Gestión de Batería', 'familia': 'BATT-SYS-2024-002'},
-            'JCI240003C': {'nombre': 'Switch Inteligente Interior', 'familia': 'INT-SWT-2024-003'}
-        }
-        
-        return {
-            'codigo': codigo,
-            'nombre': productos_info[codigo]['nombre'],
-            'familia': productos_info[codigo]['familia'],
-            'progreso_anterior': 65,  # Simulado
-            'progreso_nuevo': 85,     # Simulado
-            'etapa_anterior': 'Pulido',
-            'etapa_nueva': 'Presión'
-        }
+        """Simulación mejorada de escaneo que actualiza el estado real del producto"""
+        try:
+            # Información base de productos
+            productos_info = {
+                'JCI240001A': {'nombre': 'Controlador HVAC Inteligente', 'familia': 'HVAC-CTL-2024-001'},
+                'JCI240002B': {'nombre': 'Sistema de Gestión de Batería', 'familia': 'BATT-SYS-2024-002'},
+                'JCI240003C': {'nombre': 'Switch Inteligente Interior', 'familia': 'INT-SWT-2024-003'}
+            }
+            
+            # Información de etapas
+            stages_info = {
+                1: {'name': 'Soldadura', 'progress_increment': 16.67},
+                2: {'name': 'Pulido', 'progress_increment': 16.67},
+                3: {'name': 'Presión', 'progress_increment': 16.67},
+                4: {'name': 'Calidad', 'progress_increment': 16.67},
+                5: {'name': 'Pintura', 'progress_increment': 16.67},
+                6: {'name': 'Almacén', 'progress_increment': 16.67}
+            }
+            
+            # Cargar estado actual del sistema
+            current_data = self._load_system_state()
+            self.logger.info(f"Datos cargados del sistema: {len(current_data)} keys")
+            productos = current_data.get('products', {})
+            self.logger.info(f"Productos encontrados: {len(productos)} productos")
+            
+            self.logger.info(f"Buscando código {codigo} en productos: {list(productos.keys())}")
+            if codigo not in productos:
+                self.logger.warning(f"Producto {codigo} no encontrado en sistema")
+                return {
+                    'codigo': codigo,
+                    'nombre': productos_info[codigo]['nombre'],
+                    'familia': productos_info[codigo]['familia'],
+                    'error': 'Producto no encontrado en sistema',
+                    'progreso_anterior': 0,
+                    'progreso_nuevo': 0,
+                    'etapa_anterior': 'N/A',
+                    'etapa_nueva': 'N/A'
+                }
+            
+            # Obtener estado actual del producto
+            producto = productos[codigo]
+            etapa_actual = producto.get('current_stage', 1)
+            progreso_actual = producto.get('progress_percentage', 0.0)
+            estado_actual = producto.get('status', 'Pendiente')
+            
+            # Calcular nueva etapa y progreso
+            if etapa_actual < 6:  # Aún hay etapas por completar
+                nueva_etapa = etapa_actual + 1
+                nuevo_progreso = min(100.0, progreso_actual + stages_info[etapa_actual]['progress_increment'])
+                nuevo_estado = 'En Proceso' if nuevo_progreso < 100 else 'Completado'
+            else:  # Ya en la última etapa
+                nueva_etapa = 6
+                nuevo_progreso = 100.0
+                nuevo_estado = 'Completado'
+            
+            # Actualizar el producto en el sistema
+            productos[codigo].update({
+                'current_stage': nueva_etapa,
+                'progress_percentage': nuevo_progreso,
+                'status': nuevo_estado,
+                'last_updated': datetime.now().isoformat(),
+                'total_cycle_time': productos[codigo].get('total_cycle_time', 0) + 1
+            })
+            
+            # Agregar etapa completada
+            if 'etapas_completadas' not in productos[codigo]:
+                productos[codigo]['etapas_completadas'] = []
+            
+            if etapa_actual not in productos[codigo]['etapas_completadas']:
+                productos[codigo]['etapas_completadas'].append({
+                    'etapa': etapa_actual,
+                    'nombre': stages_info[etapa_actual]['name'],
+                    'timestamp': datetime.now().isoformat()
+                })
+            
+            # Guardar estado actualizado
+            self._save_system_state(current_data)
+            
+            # Recalcular estadísticas del sistema
+            self._update_system_statistics(current_data)
+            
+            self.logger.info(f"Producto {codigo} avanzado de {stages_info[etapa_actual]['name']} a {stages_info[nueva_etapa]['name']}")
+            
+            return {
+                'codigo': codigo,
+                'nombre': productos_info[codigo]['nombre'],
+                'familia': productos_info[codigo]['familia'],
+                'progreso_anterior': progreso_actual,
+                'progreso_nuevo': nuevo_progreso,
+                'etapa_anterior': stages_info[etapa_actual]['name'],
+                'etapa_nueva': stages_info[nueva_etapa]['name'],
+                'estado_anterior': estado_actual,
+                'estado_nuevo': nuevo_estado
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Error en _simulate_enhanced_scan: {e}")
+            self.logger.error(f"Exception tipo: {type(e).__name__}")
+            self.logger.error(f"Traceback: {e}", exc_info=True)
+            # Fallback a simulación básica
+            return {
+                'codigo': codigo,
+                'nombre': productos_info.get(codigo, {}).get('nombre', 'Producto Desconocido'),
+                'familia': productos_info.get(codigo, {}).get('familia', 'N/A'),
+                'progreso_anterior': 65,
+                'progreso_nuevo': 85,
+                'etapa_anterior': 'Pulido',
+                'etapa_nueva': 'Presión',
+                'error': f'Fallback usado: {str(e)}'
+            }
     
     def _get_stage_info(self, etapa):
         """Obtener información detallada de etapa"""
@@ -451,6 +543,134 @@ class WebApplicationExtension:
         
         with open(logo_path, 'w', encoding='utf-8') as f:
             f.write(logo_svg)
+    
+    def _load_system_state(self):
+        """Cargar estado actual del sistema desde archivo"""
+        try:
+            # Intentar diferentes ubicaciones del archivo de estado
+            possible_files = [
+                'data/json/sistema_estado.json',
+                'data/estado_sistema.json', 
+                'estado_sistema.json'
+            ]
+            
+            for file_path in possible_files:
+                if os.path.exists(file_path):
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        return json.load(f)
+            
+            # Si no existe archivo, crear estructura básica
+            return self._create_basic_system_state()
+            
+        except Exception as e:
+            self.logger.warning(f"Error cargando estado del sistema: {e}")
+            return self._create_basic_system_state()
+    
+    def _save_system_state(self, data):
+        """Guardar estado actualizado del sistema"""
+        try:
+            # Asegurar que el directorio existe
+            os.makedirs('data/json', exist_ok=True)
+            
+            # Guardar en el archivo principal
+            file_path = 'data/json/sistema_estado.json'
+            with open(file_path, 'w', encoding='utf-8') as f:
+                json.dump(data, f, indent=2, ensure_ascii=False)
+                
+            self.logger.info(f"Estado del sistema guardado en {file_path}")
+            
+        except Exception as e:
+            self.logger.error(f"Error guardando estado del sistema: {e}")
+    
+    def _create_basic_system_state(self):
+        """Crear estructura básica del estado del sistema"""
+        return {
+            'productos': {
+                'JCI240001A': {
+                    'nombre': 'Controlador HVAC Inteligente',
+                    'codigo': 'JCI240001A',
+                    'estado': 'Pendiente',
+                    'progreso': 0.0,
+                    'etapa_actual': 'Soldadura',
+                    'etapa_actual_numero': 1,
+                    'etapas_completadas': [],
+                    'fecha': datetime.now().isoformat(),
+                    'operador_actual': '',
+                    'tiempo_ciclo': 0,
+                    'calidad': 100.0,
+                    'tipo_producto': 'Controles HVAC'
+                },
+                'JCI240002B': {
+                    'nombre': 'Sistema de Gestión de Batería',
+                    'codigo': 'JCI240002B',
+                    'estado': 'Pendiente',
+                    'progreso': 0.0,
+                    'etapa_actual': 'Soldadura',
+                    'etapa_actual_numero': 1,
+                    'etapas_completadas': [],
+                    'fecha': datetime.now().isoformat(),
+                    'operador_actual': '',
+                    'tiempo_ciclo': 0,
+                    'calidad': 100.0,
+                    'tipo_producto': 'Sistemas de Energía'
+                },
+                'JCI240003C': {
+                    'nombre': 'Switch Inteligente Interior',
+                    'codigo': 'JCI240003C',
+                    'estado': 'Pendiente',
+                    'progreso': 0.0,
+                    'etapa_actual': 'Soldadura',
+                    'etapa_actual_numero': 1,
+                    'etapas_completadas': [],
+                    'fecha': datetime.now().isoformat(),
+                    'operador_actual': '',
+                    'tiempo_ciclo': 0,
+                    'calidad': 100.0,
+                    'tipo_producto': 'Controles Interiores'
+                }
+            },
+            'current_stage': 1,
+            'is_running': True,
+            'scan_count': 0,
+            'error_count': 0,
+            'timestamp': datetime.now().isoformat()
+        }
+    
+    def _update_system_statistics(self, data):
+        """Actualizar estadísticas del sistema basadas en productos"""
+        try:
+            productos = data.get('productos', {})
+            if not productos:
+                return
+                
+            total = len(productos)
+            completados = sum(1 for p in productos.values() if p.get('estado') == 'Completado')
+            en_proceso = sum(1 for p in productos.values() if p.get('estado') == 'En Proceso')
+            pendientes = sum(1 for p in productos.values() if p.get('estado') == 'Pendiente')
+            
+            progreso_total = sum(p.get('progreso', 0) for p in productos.values())
+            progreso_promedio = progreso_total / total if total > 0 else 0
+            
+            tasa_completacion = (completados / total * 100) if total > 0 else 0
+            
+            # Actualizar estadísticas en el sistema
+            data['estadisticas'] = {
+                'total': total,
+                'completados': completados,
+                'en_proceso': en_proceso,
+                'pendientes': pendientes,
+                'progreso_promedio': round(progreso_promedio, 2),
+                'tasa_completacion': round(tasa_completacion, 2)
+            }
+            
+            # Actualizar contadores globales
+            data['scan_count'] = data.get('scan_count', 0) + 1
+            data['timestamp'] = datetime.now().isoformat()
+            
+            self.logger.info(f"Estadísticas actualizadas: {completados}/{total} completados, {progreso_promedio:.1f}% promedio")
+            
+        except Exception as e:
+            self.logger.error(f"Error actualizando estadísticas: {e}")
 
 
 def extend_web_application(web_app):

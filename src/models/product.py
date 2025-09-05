@@ -134,12 +134,30 @@ class JCIProduct:
     def __post_init__(self):
         """Inicialización post-creación"""
         if not self.stage_executions:
-            # Inicializar las 6 etapas estándar de Johnson Controls
+            # Inicializar etapas dinámicas del sistema
             self._initialize_stages()
     
     def _initialize_stages(self):
-        """Inicializar las etapas del proceso"""
-        jci_stages = [
+        """Inicializar las etapas del proceso usando el gestor dinámico"""
+        try:
+            from ..core.stage_manager import global_stage_manager
+            active_stages = global_stage_manager.get_active_stages()
+            
+            for stage_data in active_stages:
+                stage_id = stage_data['id']
+                self.stage_executions[stage_id] = StageExecution(
+                    stage_id=stage_id,
+                    stage_name=stage_data['name'],
+                    operator_id=stage_data['operator_id'],
+                    operator_name=stage_data['operator_name']
+                )
+        except ImportError:
+            # Fallback to default stages if stage manager not available
+            self._initialize_default_stages()
+    
+    def _initialize_default_stages(self):
+        """Inicializar etapas por defecto como fallback"""
+        default_stages = [
             (1, "Soldadura", "OP001", "Lucero Martínez"),
             (2, "Pulido", "OP002", "Felipe Hernández"),
             (3, "Presión", "OP003", "Fernando García"),
@@ -148,7 +166,7 @@ class JCIProduct:
             (6, "Almacén", "WH001", "Almacén General")
         ]
         
-        for stage_id, stage_name, op_id, op_name in jci_stages:
+        for stage_id, stage_name, op_id, op_name in default_stages:
             self.stage_executions[stage_id] = StageExecution(
                 stage_id=stage_id,
                 stage_name=stage_name,
@@ -171,12 +189,8 @@ class JCIProduct:
             # Actualizar métricas del producto
             self._update_product_metrics()
             
-            # Avanzar a la siguiente etapa
-            if self.current_stage < 6:
-                self.current_stage += 1
-            else:
-                # Producto completado
-                self._complete_product()
+            # Avanzar a la siguiente etapa usando el gestor dinámico
+            self._advance_to_next_stage()
     
     def start_current_stage(self, station_id: str = ""):
         """Iniciar la etapa actual"""
@@ -202,12 +216,44 @@ class JCIProduct:
         if self.target_cycle_time > 0:
             self.efficiency_score = min(100.0, (self.target_cycle_time / max(1, self.total_cycle_time)) * 100)
     
+    def _advance_to_next_stage(self):
+        """Avanzar a la siguiente etapa usando el gestor dinámico"""
+        try:
+            from ..core.stage_manager import global_stage_manager
+            next_stage = global_stage_manager.get_next_stage(self.current_stage)
+            
+            if next_stage:
+                self.current_stage = next_stage['id']
+                # Asegurar que la nueva etapa esté inicializada
+                if self.current_stage not in self.stage_executions:
+                    self.stage_executions[self.current_stage] = StageExecution(
+                        stage_id=next_stage['id'],
+                        stage_name=next_stage['name'],
+                        operator_id=next_stage['operator_id'],
+                        operator_name=next_stage['operator_name']
+                    )
+            else:
+                # No hay más etapas, producto completado
+                self._complete_product()
+        except ImportError:
+            # Fallback behavior for hardcoded stages
+            active_stage_ids = sorted(self.stage_executions.keys())
+            try:
+                current_index = active_stage_ids.index(self.current_stage)
+                if current_index < len(active_stage_ids) - 1:
+                    self.current_stage = active_stage_ids[current_index + 1]
+                else:
+                    self._complete_product()
+            except ValueError:
+                self._complete_product()
+    
     def _update_product_metrics(self):
         """Actualizar métricas del producto"""
         completed_stages = sum(1 for stage in self.stage_executions.values() 
                               if stage.status == StageStatus.COMPLETED)
         
-        self.progress_percentage = (completed_stages / len(self.stage_executions)) * 100
+        total_stages = len(self.stage_executions)
+        self.progress_percentage = (completed_stages / total_stages * 100) if total_stages > 0 else 0
         
         # Calcular calidad promedio
         quality_scores = [stage.quality_metrics.quality_score 
@@ -332,6 +378,81 @@ class JCIProduct:
             product.last_updated = datetime.fromisoformat(data['last_updated'])
         
         return product
+    
+    def get_stage_progression_info(self) -> Dict[str, Any]:
+        """Obtener información de progresión de etapas"""
+        try:
+            from ..core.stage_manager import global_stage_manager
+            return global_stage_manager.get_stage_progression_info(self.current_stage)
+        except ImportError:
+            # Fallback calculation
+            active_stages = sorted(self.stage_executions.keys())
+            total_stages = len(active_stages)
+            try:
+                current_position = active_stages.index(self.current_stage) + 1
+            except ValueError:
+                current_position = 1
+            
+            return {
+                'current_stage_id': self.current_stage,
+                'current_position': current_position,
+                'total_stages': total_stages,
+                'progress_percentage': (current_position / total_stages * 100) if total_stages > 0 else 0,
+                'is_first': current_position == 1,
+                'is_last': current_position == total_stages
+            }
+    
+    def can_advance_stage(self) -> bool:
+        """Verificar si el producto puede avanzar a la siguiente etapa"""
+        try:
+            from ..core.stage_manager import global_stage_manager
+            next_stage = global_stage_manager.get_next_stage(self.current_stage)
+            return next_stage is not None
+        except ImportError:
+            # Fallback logic
+            active_stages = sorted(self.stage_executions.keys())
+            try:
+                current_index = active_stages.index(self.current_stage)
+                return current_index < len(active_stages) - 1
+            except ValueError:
+                return False
+    
+    def synchronize_stages(self):
+        """Sincronizar etapas con la configuración actual del sistema"""
+        try:
+            from ..core.stage_manager import global_stage_manager
+            active_stages = global_stage_manager.get_active_stages()
+            
+            # Agregar nuevas etapas si no existen
+            for stage_data in active_stages:
+                stage_id = stage_data['id']
+                if stage_id not in self.stage_executions:
+                    self.stage_executions[stage_id] = StageExecution(
+                        stage_id=stage_id,
+                        stage_name=stage_data['name'],
+                        operator_id=stage_data['operator_id'],
+                        operator_name=stage_data['operator_name']
+                    )
+            
+            # Actualizar información de etapas existentes
+            for stage_id, stage_execution in self.stage_executions.items():
+                stage_data = next((s for s in active_stages if s['id'] == stage_id), None)
+                if stage_data:
+                    stage_execution.stage_name = stage_data['name']
+                    # Solo actualizar operador si la etapa no está en progreso
+                    if stage_execution.status == StageStatus.NOT_STARTED:
+                        stage_execution.operator_id = stage_data['operator_id']
+                        stage_execution.operator_name = stage_data['operator_name']
+            
+            # Verificar si la etapa actual sigue siendo válida
+            if not global_stage_manager.validate_stage_id(self.current_stage):
+                # Mover a la primera etapa activa válida
+                first_active_stage = next(iter(active_stages), None)
+                if first_active_stage:
+                    self.current_stage = first_active_stage['id']
+                    
+        except ImportError:
+            pass  # No action needed if stage manager is not available
 
 
 # Productos de ejemplo para Johnson Controls

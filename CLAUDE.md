@@ -73,6 +73,9 @@ py -m unittest discover tests/
 
 # Run specific test
 py -m unittest tests.test_system
+
+# Run basic system validation tests
+py tests/test_system.py --basic
 ```
 
 ### Code Quality

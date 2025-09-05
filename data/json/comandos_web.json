@@ -1,10 +1,10 @@
 {
-  "timestamp": "2025-09-01T10:18:50.309038",
+  "timestamp": "2025-09-05T01:00:30.354865",
   "comando": "simular_escaneo",
   "parametros": {
     "codigo": "JCI240001A"
   },
   "procesado": true,
   "source": "web_api",
-  "procesado_timestamp": "2025-09-01T10:18:50.350389"
+  "procesado_timestamp": "2025-09-05T01:00:30.470315"
 }

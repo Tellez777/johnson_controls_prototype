@@ -1,0 +1,121 @@
+{
+  "summary": {
+    "total_tests": 15,
+    "tests_passed": 14,
+    "tests_failed": 1,
+    "success_rate": 93.33,
+    "total_duration": 0.6,
+    "errors_count": 0,
+    "warnings_count": 0
+  },
+  "test_details": [
+    {
+      "test_name": "Creación de productos",
+      "passed": true,
+      "details": "Creados 2 productos exitosamente",
+      "execution_time": 8.821487426757812e-05,
+      "timestamp": "2025-09-05T00:19:00.451601"
+    },
+    {
+      "test_name": "Lectura de productos",
+      "passed": true,
+      "details": "Productos leídos correctamente con datos consistentes",
+      "execution_time": 1.9073486328125e-06,
+      "timestamp": "2025-09-05T00:19:00.451606"
+    },
+    {
+      "test_name": "Actualización de productos",
+      "passed": true,
+      "details": "Producto actualizado correctamente",
+      "execution_time": 1.6689300537109375e-06,
+      "timestamp": "2025-09-05T00:19:00.451609"
+    },
+    {
+      "test_name": "Eliminación de productos",
+      "passed": true,
+      "details": "Producto eliminado correctamente",
+      "execution_time": 2.1457672119140625e-06,
+      "timestamp": "2025-09-05T00:19:00.451613"
+    },
+    {
+      "test_name": "Secuencia normal de etapas",
+      "passed": true,
+      "details": "Progresión exitosa a través de 3 etapas",
+      "execution_time": 8.130073547363281e-05,
+      "timestamp": "2025-09-05T00:19:00.451772"
+    },
+    {
+      "test_name": "Validación de etapas",
+      "passed": true,
+      "details": "Validación de etapas funcionando correctamente",
+      "execution_time": 1.8358230590820312e-05,
+      "timestamp": "2025-09-05T00:19:00.451792"
+    },
+    {
+      "test_name": "Escaneo exitoso",
+      "passed": true,
+      "details": "Producto TEST001 escaneado correctamente",
+      "execution_time": 0.03913712501525879,
+      "timestamp": "2025-09-05T00:19:00.491015"
+    },
+    {
+      "test_name": "Escaneo de producto inexistente",
+      "passed": true,
+      "details": "Sistema rechazó correctamente producto inexistente",
+      "execution_time": 0.00015020370483398438,
+      "timestamp": "2025-09-05T00:19:00.491169"
+    },
+    {
+      "test_name": "Asignación automática de operadores",
+      "passed": false,
+      "details": "Error: No se asignó operador para etapa 7",
+      "execution_time": 0.004908323287963867,
+      "timestamp": "2025-09-05T00:19:00.496177"
+    },
+    {
+      "test_name": "Múltiples productos simultáneos",
+      "passed": true,
+      "details": "Procesados 1 productos en paralelo",
+      "execution_time": 0.0001621246337890625,
+      "timestamp": "2025-09-05T00:19:00.496520"
+    },
+    {
+      "test_name": "Cambio de etapa del sistema",
+      "passed": true,
+      "details": "Sistema maneja cambios de etapa correctamente",
+      "execution_time": 0.03599715232849121,
+      "timestamp": "2025-09-05T00:19:00.532521"
+    },
+    {
+      "test_name": "Manejo de datos corruptos",
+      "passed": true,
+      "details": "Sistema maneja datos inválidos apropiadamente",
+      "execution_time": 7.557868957519531e-05,
+      "timestamp": "2025-09-05T00:19:00.532808"
+    },
+    {
+      "test_name": "Escaneos simultáneos",
+      "passed": true,
+      "details": "Sistema manejó 5 escaneos consecutivos",
+      "execution_time": 0.502915620803833,
+      "timestamp": "2025-09-05T00:19:01.035736"
+    },
+    {
+      "test_name": "Consistencia de datos de productos",
+      "passed": true,
+      "details": "Datos consistentes",
+      "execution_time": 5.4836273193359375e-06,
+      "timestamp": "2025-09-05T00:19:01.035990"
+    },
+    {
+      "test_name": "Rendimiento de escaneo",
+      "passed": true,
+      "details": "Tiempo de escaneo: 0.000s (límite: 1.0s)",
+      "execution_time": 0.00010395050048828125,
+      "timestamp": "2025-09-05T00:19:01.036184"
+    }
+  ],
+  "errors": [],
+  "warnings": [],
+  "generated_at": "2025-09-05T00:19:01.036344"
+}

@@ -12,6 +12,7 @@ from typing import Dict, List, Any, Optional
 
 from ...utils.logger import get_logger
 from ...utils.config import config
+from ...core.stage_manager import global_stage_manager
 
 
 class DataAPI:
@@ -183,7 +184,7 @@ class DataAPI:
         def get_stage_info(stage_id):
             """Obtener información de etapa específica"""
             try:
-                if not (1 <= stage_id <= 6):
+                if not global_stage_manager.validate_stage_id(stage_id):
                     return jsonify({
                         'error': 'ID de etapa inválido',
                         'valid_range': '1-6'
@@ -445,7 +446,8 @@ class DataAPI:
                 stage_id = data['etapa']
                 
                 # Validar que la etapa sea válida
-                valid_stages = [1, 2, 3, 4, 5, 6]
+                active_stages = global_stage_manager.get_active_stages()
+                valid_stages = [s['id'] for s in active_stages]
                 if stage_id not in valid_stages:
                     return jsonify({
                         'success': False,
@@ -453,10 +455,7 @@ class DataAPI:
                     }), 400
                 
                 # Nombres de etapas
-                stage_names = {
-                    1: 'Soldadura', 2: 'Pulido', 3: 'Presión', 
-                    4: 'Calidad', 5: 'Pintura', 6: 'Almacén'
-                }
+                stage_names = {s['id']: s['name'] for s in global_stage_manager.get_active_stages()}
                 
                 # Intentar cambiar la etapa en el scanner_manager si está disponible
                 success = self._change_active_stage(stage_id)
@@ -532,13 +531,15 @@ class DataAPI:
         def get_stages():
             """Obtener lista de etapas configuradas"""
             try:
-                state_data = self._load_system_state()
-                stages = state_data.get('stages', self._get_default_stages())
+                stages = global_stage_manager.get_all_stages()
+                active_stages = global_stage_manager.get_active_stages()
                 
                 return jsonify({
                     'success': True,
                     'stages': stages,
-                    'total_stages': len(stages)
+                    'active_stages': active_stages,
+                    'total_stages': len(stages),
+                    'active_count': len(active_stages)
                 })
                 
             except Exception as e:
@@ -555,41 +556,26 @@ class DataAPI:
                     return jsonify({'success': False, 'error': 'Nombre de etapa requerido'}), 400
                 
                 stage_name = data['name'].strip()
-                stage_description = data.get('description', '').strip()
-                
                 if not stage_name:
                     return jsonify({'success': False, 'error': 'Nombre de etapa no puede estar vacío'}), 400
                 
-                # Cargar estado actual
-                state_data = self._load_system_state()
-                stages = state_data.get('stages', self._get_default_stages())
-                
-                # Obtener siguiente ID
-                max_id = max([s['id'] for s in stages]) if stages else 0
-                new_stage_id = max_id + 1
-                
-                # Crear nueva etapa
-                new_stage = {
-                    'id': new_stage_id,
-                    'name': stage_name,
-                    'description': stage_description or f'Etapa {stage_name}',
-                    'created_at': datetime.now().isoformat(),
-                    'active': True
-                }
-                
-                # Agregar a la lista
-                stages.append(new_stage)
-                state_data['stages'] = stages
-                state_data['timestamp'] = datetime.now().isoformat()
-                
-                # Guardar cambios
-                self._save_system_state(state_data)
+                # Agregar etapa usando el gestor dinámico
+                new_stage = global_stage_manager.add_stage(
+                    name=stage_name,
+                    description=data.get('description', ''),
+                    stage_type=data.get('stage_type', 'custom'),
+                    operator_id=data.get('operator_id', ''),
+                    operator_name=data.get('operator_name', ''),
+                    station_id=data.get('station_id', ''),
+                    target_time_minutes=data.get('target_time_minutes', 30),
+                    quality_threshold=data.get('quality_threshold', 85.0)
+                )
                 
                 return jsonify({
                     'success': True,
                     'message': f'Etapa "{stage_name}" agregada exitosamente',
                     'stage': new_stage,
-                    'total_stages': len(stages)
+                    'total_stages': global_stage_manager.get_stage_count()
                 })
                 
             except Exception as e:
@@ -598,54 +584,67 @@ class DataAPI:
         
         @self.blueprint.route('/stages/<int:stage_id>', methods=['DELETE'])
         def delete_stage(stage_id):
-            """Eliminar etapa del sistema"""
+            """Eliminar etapa del sistema (totalmente dinamico)"""
             try:
-                # Cargar estado actual
-                state_data = self._load_system_state()
-                stages = state_data.get('stages', self._get_default_stages())
-                
-                # Verificar que no sea una de las 6 etapas básicas
-                if stage_id <= 6:
+                # Verificar si la etapa existe
+                stage_info = global_stage_manager.get_stage(stage_id)
+                if not stage_info:
                     return jsonify({
                         'success': False, 
-                        'error': 'No se pueden eliminar las etapas básicas del sistema'
-                    }), 400
-                
-                # Buscar y eliminar la etapa
-                stage_to_delete = None
-                for i, stage in enumerate(stages):
-                    if stage['id'] == stage_id:
-                        stage_to_delete = stages.pop(i)
-                        break
-                
-                if not stage_to_delete:
-                    return jsonify({
-                        'success': False,
                         'error': f'Etapa con ID {stage_id} no encontrada'
                     }), 404
                 
-                # Verificar que no hay productos en esa etapa
+                # Reasignar productos de la etapa a eliminar a la primera etapa activa
+                state_data = self._load_system_state()
                 products = state_data.get('products', {})
                 products_in_stage = [p for p in products.values() 
                                    if p.get('current_stage') == stage_id]
                 
                 if products_in_stage:
+                    # Obtener la primera etapa activa como destino para reasignar productos
+                    active_stages = global_stage_manager.get_active_stages()
+                    target_stages = [s for s in active_stages if s['id'] != stage_id]
+                    
+                    if target_stages:
+                        target_stage_id = target_stages[0]['id']
+                        target_stage_name = target_stages[0]['name']
+                        
+                        # Reasignar productos a la primera etapa activa
+                        for product in products_in_stage:
+                            product['current_stage'] = target_stage_id
+                            product['previous_stage'] = stage_id
+                        
+                        # Guardar estado actualizado
+                        self._save_system_state(state_data)
+                        
+                        self.logger.info(f"Reasignados {len(products_in_stage)} productos de etapa {stage_id} a etapa {target_stage_id} ({target_stage_name})")
+                    else:
+                        return jsonify({
+                            'success': False,
+                            'error': 'No se puede eliminar la unica etapa activa del sistema'
+                        }), 400
+                
+                # Usar el gestor dinámico para eliminar la etapa
+                stage_name = stage_info['name']
+                success = global_stage_manager.delete_stage(stage_id)
+                
+                if success:
+                    message = f'Etapa "{stage_name}" eliminada exitosamente'
+                    if products_in_stage:
+                        message += f'. {len(products_in_stage)} productos fueron reasignados automáticamente'
+                    
+                    return jsonify({
+                        'success': True,
+                        'message': message,
+                        'deleted_stage_id': stage_id,
+                        'reassigned_products': len(products_in_stage) if products_in_stage else 0,
+                        'total_stages': global_stage_manager.get_stage_count()
+                    })
+                else:
                     return jsonify({
                         'success': False,
-                        'error': f'No se puede eliminar la etapa. Hay {len(products_in_stage)} productos en esa etapa'
-                    }), 400
-                
-                # Guardar cambios
-                state_data['stages'] = stages
-                state_data['timestamp'] = datetime.now().isoformat()
-                self._save_system_state(state_data)
-                
-                return jsonify({
-                    'success': True,
-                    'message': f'Etapa "{stage_to_delete["name"]}" eliminada exitosamente',
-                    'deleted_stage': stage_to_delete,
-                    'total_stages': len(stages)
-                })
+                        'error': 'Error eliminando la etapa del sistema'
+                    }), 500
                 
             except Exception as e:
                 self.logger.error(f"Error eliminando etapa {stage_id}: {e}")
@@ -743,7 +742,7 @@ class DataAPI:
                     'insights': self._generate_insights(state_data),
                     
                     # Información de operadores y turnos
-                    'operadores': state_data.get('operators', {}),
+                    'operadores': self._generate_operators_from_stages(),
                     'turnos': state_data.get('shifts', {}),
                     
                     # Metadatos
@@ -757,6 +756,291 @@ class DataAPI:
                 return jsonify({
                     'error': 'Error interno del servidor',
                     'message': str(e)
+                }), 500
+
+        @self.blueprint.route('/operators', methods=['GET'])
+        def get_operators():
+            """Obtener lista de operadores"""
+            try:
+                # Generar operadores desde las etapas configuradas
+                operators = self._generate_operators_from_stages()
+                
+                return jsonify({
+                    'success': True,
+                    'operators': operators,
+                    'total_operators': len(operators),
+                    'timestamp': datetime.now().isoformat()
+                })
+                
+            except Exception as e:
+                self.logger.error(f"Error obteniendo operadores: {e}")
+                return jsonify({
+                    'success': False,
+                    'error': 'Error obteniendo operadores',
+                    'message': str(e)
+                }), 500
+
+        @self.blueprint.route('/operators', methods=['POST'])
+        def add_operator():
+            """Agregar nuevo operador"""
+            try:
+                data = request.get_json()
+                if not data:
+                    return jsonify({
+                        'success': False,
+                        'message': 'Datos del operador requeridos'
+                    }), 400
+
+                # Validar datos requeridos
+                required_fields = ['name', 'shift', 'station']
+                missing_fields = [field for field in required_fields if not data.get(field)]
+                
+                if missing_fields:
+                    return jsonify({
+                        'success': False,
+                        'message': f'Campos requeridos faltantes: {", ".join(missing_fields)}'
+                    }), 400
+
+                # Cargar estado actual
+                state_data = self._load_system_state()
+                operators = state_data.get('operadores', {})
+                
+                # Generar ID único para el operador (evita colisiones)
+                existing_ids = set(operators.keys())
+                counter = 1
+                while f"OP{counter:03d}" in existing_ids:
+                    counter += 1
+                operator_id = f"OP{counter:03d}"
+                
+                # Crear nuevo operador
+                new_operator = {
+                    'id': operator_id,
+                    'name': data['name'],
+                    'shift': data['shift'],
+                    'station': data['station'],
+                    'status': data.get('status', 'active'),
+                    'skills': data.get('skills', []),
+                    'created_at': datetime.now().isoformat(),
+                    'updated_at': datetime.now().isoformat()
+                }
+                
+                # Agregar campos opcionales si están presentes
+                optional_fields = ['contact', 'certifications', 'performance_rating']
+                for field in optional_fields:
+                    if field in data:
+                        new_operator[field] = data[field]
+                
+                operators[operator_id] = new_operator
+                state_data['operadores'] = operators
+                
+                # Guardar cambios
+                if self._save_system_state(state_data):
+                    self.logger.info(f"Operador {operator_id} agregado: {data['name']}")
+                    return jsonify({
+                        'success': True,
+                        'message': f'Operador {data["name"]} agregado exitosamente',
+                        'operator': new_operator
+                    })
+                else:
+                    return jsonify({
+                        'success': False,
+                        'message': 'Error guardando operador'
+                    }), 500
+                    
+            except Exception as e:
+                import traceback
+                self.logger.error(f"Error agregando operador: {e}")
+                self.logger.error(f"Traceback: {traceback.format_exc()}")
+                return jsonify({
+                    'success': False,
+                    'message': 'Error interno del servidor',
+                    'error': str(e)
+                }), 500
+
+        @self.blueprint.route('/operators/<operator_id>', methods=['PUT'])
+        def update_operator(operator_id):
+            """Actualizar operador existente"""
+            try:
+                data = request.get_json()
+                if not data:
+                    return jsonify({
+                        'success': False,
+                        'message': 'Datos del operador requeridos'
+                    }), 400
+
+                # Cargar estado actual
+                state_data = self._load_system_state()
+                operators = state_data.get('operadores', {})
+                
+                if operator_id not in operators:
+                    return jsonify({
+                        'success': False,
+                        'message': 'Operador no encontrado'
+                    }), 404
+
+                # Actualizar operador
+                operator = operators[operator_id]
+                operator.update({
+                    'name': data.get('name', operator['name']),
+                    'shift': data.get('shift', operator['shift']),
+                    'station': data.get('station', operator['station']),
+                    'status': data.get('status', operator['status']),
+                    'skills': data.get('skills', operator.get('skills', [])),
+                    'updated_at': datetime.now().isoformat()
+                })
+                
+                state_data['operadores'] = operators
+                
+                # Guardar cambios
+                if self._save_system_state(state_data):
+                    self.logger.info(f"Operador {operator_id} actualizado")
+                    return jsonify({
+                        'success': True,
+                        'message': f'Operador {operator["name"]} actualizado exitosamente',
+                        'operator': operator
+                    })
+                else:
+                    return jsonify({
+                        'success': False,
+                        'message': 'Error guardando cambios del operador'
+                    }), 500
+                    
+            except Exception as e:
+                self.logger.error(f"Error actualizando operador: {e}")
+                return jsonify({
+                    'success': False,
+                    'message': 'Error interno del servidor'
+                }), 500
+
+        @self.blueprint.route('/operators/<operator_id>', methods=['DELETE'])
+        def delete_operator(operator_id):
+            """Eliminar operador"""
+            try:
+                # Cargar estado actual
+                state_data = self._load_system_state()
+                operators = state_data.get('operadores', {})
+                
+                if operator_id not in operators:
+                    return jsonify({
+                        'success': False,
+                        'message': 'Operador no encontrado'
+                    }), 404
+
+                operator_name = operators[operator_id]['name']
+                del operators[operator_id]
+                state_data['operadores'] = operators
+                
+                # Guardar cambios
+                if self._save_system_state(state_data):
+                    self.logger.info(f"Operador {operator_id} eliminado")
+                    return jsonify({
+                        'success': True,
+                        'message': f'Operador {operator_name} eliminado exitosamente',
+                        'deleted_operator_id': operator_id
+                    })
+                else:
+                    return jsonify({
+                        'success': False,
+                        'message': 'Error eliminando operador'
+                    }), 500
+                    
+            except Exception as e:
+                self.logger.error(f"Error eliminando operador: {e}")
+                return jsonify({
+                    'success': False,
+                    'message': 'Error interno del servidor'
+                }), 500
+
+        @self.blueprint.route('/products/reset', methods=['POST'])
+        def reset_products():
+            """Reiniciar productos a estado inicial para pruebas"""
+            try:
+                data = request.get_json() or {}
+                
+                # Obtener lista de productos a reiniciar
+                products_to_reset = data.get('products', [])
+                reset_all = data.get('reset_all', False)
+                
+                # Cargar estado actual
+                state_data = self._load_system_state()
+                if not state_data or 'products' not in state_data:
+                    return jsonify({
+                        'success': False,
+                        'message': 'Error cargando datos del sistema'
+                    }), 500
+                
+                reset_count = 0
+                
+                # Si reset_all es True, reiniciar todos los productos
+                if reset_all:
+                    products_to_reset = list(state_data['products'].keys())
+                
+                # Reiniciar productos especificados
+                for barcode in products_to_reset:
+                    if barcode in state_data['products']:
+                        product = state_data['products'][barcode]
+                        
+                        # Reiniciar a estado inicial
+                        product['current_stage'] = 1
+                        product['progress_percentage'] = 0.0
+                        product['status'] = 'Pendiente'
+                        product['started_at'] = None
+                        product['completed_at'] = None
+                        product['last_updated'] = datetime.now().isoformat()
+                        product['total_cycle_time'] = 0
+                        product['efficiency_score'] = 0.0
+                        product['quality_score'] = 100.0
+                        
+                        # Reiniciar todas las stage_executions
+                        for stage_id in product.get('stage_executions', {}):
+                            stage_exec = product['stage_executions'][stage_id]
+                            stage_exec['status'] = 'No Iniciado'
+                            stage_exec['start_time'] = None
+                            stage_exec['end_time'] = None
+                            stage_exec['duration_seconds'] = 0
+                            stage_exec['quality_score'] = 100.0
+                            stage_exec['defect_count'] = 0
+                            stage_exec['notes'] = ''
+                            stage_exec['operator_id'] = ''
+                        
+                        # Reiniciar stage_progress
+                        product['stage_progress'] = {
+                            'completed_stages': 0,
+                            'completion_percentage': 0.0,
+                            'current_stage': 1,
+                            'stages_detail': {
+                                str(stage_id): {
+                                    'completed': False,
+                                    'duration': 0,
+                                    'quality': 100.0
+                                } for stage_id in product.get('stage_executions', {})
+                            },
+                            'total_stages': len(product.get('stage_executions', {}))
+                        }
+                        
+                        reset_count += 1
+                        self.logger.info(f"Producto reiniciado: {barcode}")
+                
+                # Guardar cambios
+                if self._save_system_state(state_data):
+                    return jsonify({
+                        'success': True,
+                        'message': f'Se reiniciaron {reset_count} productos exitosamente',
+                        'reset_count': reset_count,
+                        'products_reset': products_to_reset
+                    })
+                else:
+                    return jsonify({
+                        'success': False,
+                        'message': 'Error guardando cambios'
+                    }), 500
+                    
+            except Exception as e:
+                self.logger.error(f"Error reiniciando productos: {e}")
+                return jsonify({
+                    'success': False,
+                    'message': 'Error interno del servidor',
+                    'error': str(e)
                 }), 500
 
         @self.blueprint.route('/health', methods=['GET'])
@@ -841,13 +1125,15 @@ class DataAPI:
             stage_executions = product.get('stage_executions', {})
             
             progress = {
-                'total_stages': 6,
+                'total_stages': global_stage_manager.get_stage_count(),
                 'completed_stages': 0,
                 'current_stage': product.get('current_stage', 1),
                 'stages_detail': {}
             }
             
-            for stage_id in range(1, 7):
+            active_stages = global_stage_manager.get_active_stages()
+            for stage_data in active_stages:
+                stage_id = stage_data['id']
                 stage_key = str(stage_id)
                 stage_data = stage_executions.get(stage_key, {})
                 
@@ -861,7 +1147,8 @@ class DataAPI:
                     'quality': stage_data.get('quality_score', 0)
                 }
             
-            progress['completion_percentage'] = (progress['completed_stages'] / 6) * 100
+            total_stages = global_stage_manager.get_stage_count()
+            progress['completion_percentage'] = (progress['completed_stages'] / total_stages * 100) if total_stages > 0 else 0
             
             return progress
             
@@ -1919,3 +2206,74 @@ class DataAPI:
                 'order': 6
             }
         ]
+    
+    def _generate_operators_from_stages(self) -> Dict[str, Any]:
+        """Generar operadores dinámicamente desde las etapas configuradas"""
+        try:
+            # Cargar etapas desde stages_config.json
+            stages_file = config.get_data_path("json") / "stages_config.json"
+            self.logger.info(f"DEBUG OPERADORES: Buscando archivo {stages_file}")
+            if not stages_file.exists():
+                self.logger.warning(f"DEBUG OPERADORES: Archivo no existe {stages_file}")
+                return {}
+            
+            with open(stages_file, 'r', encoding='utf-8') as f:
+                stages_data = json.load(f)
+            
+            operators = {}
+            operator_counter = 1
+            
+            for stage in stages_data.get('stages', []):
+                if stage.get('operator_name') and stage.get('operator_name').strip():
+                    operator_name = stage['operator_name'].strip()
+                    operator_id = stage.get('operator_id', '').strip()
+                    
+                    # Si no tiene operator_id, generar uno basado en el nombre
+                    if not operator_id:
+                        operator_id = f"OP{operator_counter:03d}"
+                    
+                    # Crear operador si no existe (buscar por nombre para evitar duplicados)
+                    existing_operator_id = None
+                    for existing_id, existing_op in operators.items():
+                        if existing_op['name'] == operator_name:
+                            existing_operator_id = existing_id
+                            break
+                    
+                    if existing_operator_id:
+                        # Usar operador existente
+                        operator_id = existing_operator_id
+                    else:
+                        # Crear nuevo operador
+                        operators[operator_id] = {
+                            'id': operator_id,
+                            'name': operator_name,
+                            'station': stage.get('station_id', ''),
+                            'shift': 'Diurno',  # Valor por defecto
+                            'stage_type': stage.get('stage_type', 'production'),
+                            'assigned_stages': [],
+                            'active': stage.get('is_active', True),
+                            'created_at': stage.get('created_at', datetime.now().isoformat()),
+                            'updated_at': stage.get('updated_at', datetime.now().isoformat())
+                        }
+                        operator_counter += 1
+                    
+                    # Agregar etapa a la lista de etapas asignadas (evitar duplicados)
+                    stage_already_assigned = any(
+                        assigned_stage['stage_id'] == stage['id'] 
+                        for assigned_stage in operators[operator_id]['assigned_stages']
+                    )
+                    if not stage_already_assigned:
+                        operators[operator_id]['assigned_stages'].append({
+                            'stage_id': stage['id'],
+                            'stage_name': stage['name'],
+                            'station_id': stage.get('station_id', '')
+                        })
+            
+            self.logger.info(f"DEBUG OPERADORES: Generados {len(operators)} operadores desde etapas")
+            for op_id, op_data in operators.items():
+                self.logger.info(f"DEBUG OPERADORES: {op_id} -> {op_data['name']}")
+            return operators
+            
+        except Exception as e:
+            self.logger.error(f"Error generando operadores desde etapas: {e}")
+            return {}

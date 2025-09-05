@@ -2,7 +2,14 @@
   "permissions": {
     "allow": [
       "Bash(node:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(tree:*)",
+      "Bash(dir:*)",
+      "Bash(py:*)",
+      "Bash(taskkill:*)",
+      "Bash(timeout:*)",
+      "WebFetch(domain:localhost)",
+      "Bash(start http://localhost:5000)"
     ],
     "deny": [],
     "ask": []

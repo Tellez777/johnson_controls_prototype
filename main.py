@@ -20,6 +20,7 @@ from src.utils.logger import setup_logging, get_logger
 from src.core.scanner_manager import ScannerManager
 from src.web.app import WebApplication
 from src.services.analytics_service import AnalyticsService
+from src.core.stage_manager import global_stage_manager
 
 
 class JohnsonControlsSystem:
@@ -210,26 +211,36 @@ class JohnsonControlsSystem:
                     status = self.scanner_manager.get_system_status()
                     products = self.scanner_manager.get_products_summary()
                     
+                    current_stage_name = global_stage_manager.get_stage_name(status['current_stage'])
                     print(f"Estado del Sistema: {'Activo' if status['is_running'] else 'Inactivo'}")
-                    print(f"Etapa Actual: {status['current_stage']}")
+                    print(f"Etapa Actual: {status['current_stage']} ({current_stage_name})")
                     print(f"Escáner: {'Conectado' if status['scanner_connected'] else 'Desconectado'}")
                     print(f"Productos: {products['total']} | Completados: {products['completed']} | En Proceso: {products['in_progress']}")
+                    print(f"Total de Etapas: {global_stage_manager.get_stage_count()}")
                 
                 print("\nOpciones disponibles:")
-                print("1-6: Cambiar etapa (1=Soldadura, 2=Pulido, 3=Presión, 4=Calidad, 5=Pintura, 6=Almacén)")
+                # Mostrar etapas dinámicas disponibles
+                active_stages = global_stage_manager.get_active_stages()
+                stage_options = ', '.join([f"{s['id']}={s['name']}" for s in active_stages])
+                print(f"Cambiar etapa: {stage_options}")
                 print("s:   Simular escaneo")
                 print("e:   Ver estadísticas detalladas")
                 print("r:   Resetear producto")
                 print("c:   Configuración")
                 print("l:   Ver logs recientes")
+                print("st:  Gestionar etapas")
                 print("q:   Salir")
                 
                 opcion = input("\nOpción: ").strip().lower()
                 
-                if opcion in ['1', '2', '3', '4', '5', '6']:
-                    if self.scanner_manager:
-                        self.scanner_manager.change_current_stage(int(opcion))
-                        print(f"Cambiado a etapa {opcion}")
+                if opcion.isdigit():
+                    stage_id = int(opcion)
+                    if self.scanner_manager and global_stage_manager.validate_stage_id(stage_id):
+                        stage_name = global_stage_manager.get_stage_name(stage_id)
+                        self.scanner_manager.change_current_stage(stage_id)
+                        print(f"Cambiado a etapa {stage_id}: {stage_name}")
+                    else:
+                        print("Etapa no válida")
                 
                 elif opcion == 's':
                     self._simulate_scan_menu()
@@ -245,6 +256,9 @@ class JohnsonControlsSystem:
                 
                 elif opcion == 'l':
                     self._show_recent_logs()
+                
+                elif opcion == 'st':
+                    self._stage_management_menu()
                 
                 elif opcion == 'q':
                     break
@@ -358,6 +372,163 @@ class JohnsonControlsSystem:
         """Mostrar logs recientes (funcionalidad simplificada)"""
         print("Últimos eventos del sistema:")
         print("(Esta funcionalidad se implementaría leyendo archivos de log)")
+    
+    def _stage_management_menu(self):
+        """Menú de gestión de etapas"""
+        while True:
+            try:
+                print(f"\n{'='*50}")
+                print("GESTIÓN DE ETAPAS")
+                print(f"{'='*50}")
+                
+                stages = global_stage_manager.get_all_stages()
+                print("\nEtapas configuradas:")
+                for stage_data in stages:
+                    status = "✓ Activa" if stage_data['is_active'] else "✗ Inactiva"
+                    print(f"{stage_data['id']:2d}. {stage_data['name']:<20} | {stage_data['operator_name']:<20} | {status}")
+                
+                print("\nOpciones:")
+                print("a:   Agregar etapa")
+                print("d:   Desactivar/Activar etapa")
+                print("e:   Editar etapa")
+                print("r:   Reordenar etapas")
+                print("res: Resetear a valores por defecto")
+                print("b:   Volver")
+                
+                opcion = input("\nOpción: ").strip().lower()
+                
+                if opcion == 'a':
+                    self._add_stage_interactive()
+                elif opcion == 'd':
+                    self._toggle_stage_interactive()
+                elif opcion == 'e':
+                    self._edit_stage_interactive()
+                elif opcion == 'r':
+                    self._reorder_stages_interactive()
+                elif opcion == 'res':
+                    if input("¿Confirmar reset a valores por defecto? (s/n): ").lower() == 's':
+                        global_stage_manager.reset_to_defaults()
+                        print("Etapas reseteadas a valores por defecto")
+                elif opcion == 'b':
+                    break
+                else:
+                    print("Opción no válida")
+                    
+            except KeyboardInterrupt:
+                break
+            except Exception as e:
+                print(f"Error: {e}")
+    
+    def _add_stage_interactive(self):
+        """Agregar etapa interactivamente"""
+        try:
+            name = input("Nombre de la etapa: ").strip()
+            if not name:
+                print("Nombre requerido")
+                return
+            
+            description = input("Descripción (opcional): ").strip()
+            operator_name = input("Nombre del operador: ").strip()
+            operator_id = input("ID del operador: ").strip()
+            
+            try:
+                target_time = int(input("Tiempo objetivo en minutos (30): ") or "30")
+            except ValueError:
+                target_time = 30
+            
+            stage_data = global_stage_manager.add_stage(
+                name=name,
+                description=description,
+                operator_name=operator_name,
+                operator_id=operator_id,
+                target_time_minutes=target_time
+            )
+            
+            print(f"Etapa agregada: {stage_data['name']} (ID: {stage_data['id']})")
+            
+        except Exception as e:
+            print(f"Error agregando etapa: {e}")
+    
+    def _toggle_stage_interactive(self):
+        """Activar/desactivar etapa interactivamente"""
+        try:
+            stage_id = input("ID de etapa a cambiar: ").strip()
+            if not stage_id.isdigit():
+                print("ID inválido")
+                return
+            
+            stage_id = int(stage_id)
+            stage_data = global_stage_manager.get_stage(stage_id)
+            if not stage_data:
+                print("Etapa no encontrada")
+                return
+            
+            new_status = not stage_data['is_active']
+            global_stage_manager.update_stage(stage_id, is_active=new_status)
+            
+            status_text = "activada" if new_status else "desactivada"
+            print(f"Etapa {stage_data['name']} {status_text}")
+            
+        except Exception as e:
+            print(f"Error cambiando estado de etapa: {e}")
+    
+    def _edit_stage_interactive(self):
+        """Editar etapa interactivamente"""
+        try:
+            stage_id = input("ID de etapa a editar: ").strip()
+            if not stage_id.isdigit():
+                print("ID inválido")
+                return
+            
+            stage_id = int(stage_id)
+            stage_data = global_stage_manager.get_stage(stage_id)
+            if not stage_data:
+                print("Etapa no encontrada")
+                return
+            
+            print(f"Editando etapa: {stage_data['name']}")
+            
+            updates = {}
+            
+            new_name = input(f"Nuevo nombre ({stage_data['name']}): ").strip()
+            if new_name:
+                updates['name'] = new_name
+            
+            new_operator = input(f"Nuevo operador ({stage_data['operator_name']}): ").strip()
+            if new_operator:
+                updates['operator_name'] = new_operator
+            
+            if updates:
+                global_stage_manager.update_stage(stage_id, **updates)
+                print("Etapa actualizada")
+            else:
+                print("Sin cambios")
+                
+        except Exception as e:
+            print(f"Error editando etapa: {e}")
+    
+    def _reorder_stages_interactive(self):
+        """Reordenar etapas interactivamente"""
+        try:
+            stages = global_stage_manager.get_all_stages()
+            print("\nOrden actual:")
+            for i, stage in enumerate(stages):
+                print(f"{i+1}. {stage['name']}")
+            
+            print("\nIngresa el nuevo orden (IDs separados por comas):")
+            order_input = input("Orden: ").strip()
+            
+            try:
+                new_order = [int(x.strip()) for x in order_input.split(',')]
+                if global_stage_manager.reorder_stages(new_order):
+                    print("Etapas reordenadas correctamente")
+                else:
+                    print("Error: orden inválido")
+            except ValueError:
+                print("Error: formato inválido")
+                
+        except Exception as e:
+            print(f"Error reordenando etapas: {e}")
     
     def _show_control_info(self):
         """Mostrar información de control"""

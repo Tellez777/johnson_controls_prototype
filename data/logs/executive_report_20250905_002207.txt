@@ -1,0 +1,39 @@
+
+==========================================================
+REPORTE EJECUTIVO - PRUEBAS DE CONSISTENCIA DEL SISTEMA
+Johnson Controls - Sistema de Seguimiento Industrial
+==========================================================
+
+RESUMEN GENERAL:
+- Total de Pruebas: 15
+- Pruebas Exitosas: 14
+- Pruebas Fallidas: 1
+- Tasa de Exito: 93.33%
+- Tiempo Total: 0.6s
+- Estado del Sistema: BUENO
+
+ANALISIS POR CATEGORIAS:
+  [OK] CRUD: 100.0% (4/4) - Excelente
+  [OK] Etapas: 100.0% (2/2) - Excelente
+  [OK] Escaneo: 100.0% (3/3) - Excelente
+  [FAIL] Operadores: 0.0% (0/1) - Crítico
+  [OK] Escenarios: 100.0% (3/3) - Excelente
+  [OK] Consistencia: 100.0% (2/2) - Excelente
+  [OK] Rendimiento: 100.0% (1/1) - Excelente
+
+PRUEBAS FALLIDAS:
+  - Asignación automática de operadores: Error: No se asignó operador para etapa 7
+
+RECOMENDACIONES:
+  Sistema en buen estado con problemas menores. Revisar fallos específicos.
+
+ACCIONES REQUERIDAS:
+  - Revisar configuracion de operadores y asignacion automatica
+
+METRICAS DE RENDIMIENTO:
+  1. Escaneos simultáneos: 502.9ms
+  2. Escaneo exitoso: 39.1ms
+  3. Cambio de etapa del sistema: 36.0ms
+
+Reporte generado: 2025-09-05 00:22:07
+==========================================================

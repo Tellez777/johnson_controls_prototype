@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Johnson Controls - Sistema de Seguimiento Industrial</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏭</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>JC</text></svg>">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/jci-dashboard.css') }}">
 </head>
@@ -47,7 +47,7 @@
                 <span><strong>Escáner:</strong> <span id="scanner-status-text">Conectado</span></span>
             </div>
             <div class="status-item">
-                <span><strong>Etapa Activa:</strong> <span id="current-stage">Soldadura</span></span>
+                <span><strong>Etapa Activa:</strong> <span id="current-stage">Cargando...</span></span>
             </div>
             <div class="status-item">
                 <span><strong>Actualizado:</strong> <span id="last-update">--:--</span></span>
@@ -122,7 +122,7 @@
                     <h2 class="section-title">Estado de Productos</h2>
                     <div class="product-search">
                         <input type="text" id="product-search" placeholder="Buscar por código..." class="search-input">
-                        <span class="search-icon">🔍</span>
+                        <span class="search-icon">Q</span>
                     </div>
                 </div>
                 <div id="products-container" class="products-scrollable-container">
@@ -157,27 +157,13 @@
                     
                     <div class="control-group">
                         <div class="control-label">Control de Etapas
-                            <small id="active-stage-indicator" class="text-info"> (Activa: Soldadura)</small>
+                            <small id="active-stage-indicator" class="text-info"> (Activa: Cargando...)</small>
                         </div>
-                        <div class="stage-buttons-container">
-                            <button id="stage-btn-1" class="btn btn-warning btn-sm stage-btn active" onclick="changeStage(1)" data-stage="1">
-                                <span class="stage-indicator">●</span> Soldadura
-                            </button>
-                            <button id="stage-btn-2" class="btn btn-warning btn-sm stage-btn" onclick="changeStage(2)" data-stage="2">
-                                <span class="stage-indicator">●</span> Pulido
-                            </button>
-                            <button id="stage-btn-3" class="btn btn-warning btn-sm stage-btn" onclick="changeStage(3)" data-stage="3">
-                                <span class="stage-indicator">●</span> Presión
-                            </button>
-                            <button id="stage-btn-4" class="btn btn-warning btn-sm stage-btn" onclick="changeStage(4)" data-stage="4">
-                                <span class="stage-indicator">●</span> Calidad
-                            </button>
-                            <button id="stage-btn-5" class="btn btn-warning btn-sm stage-btn" onclick="changeStage(5)" data-stage="5">
-                                <span class="stage-indicator">●</span> Pintura
-                            </button>
-                            <button id="stage-btn-6" class="btn btn-warning btn-sm stage-btn" onclick="changeStage(6)" data-stage="6">
-                                <span class="stage-indicator">●</span> Almacén
-                            </button>
+                        <div class="stage-buttons-container" id="stage-buttons-container">
+                            <!-- Las etapas se cargarán dinámicamente -->
+                        </div>
+                        <div class="stage-management-controls" style="margin-top: 10px;">
+                            <!-- Los controles de gestion de etapas se encuentran en la seccion Gestion de Personal y Configuracion -->
                         </div>
                     </div>
                 </div>
@@ -301,6 +287,182 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal para Gestión de Etapas -->
+    <div id="stageManagementModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Gestión de Etapas</h3>
+                <span class="close" onclick="closeStageManagement()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="stage-management-tabs">
+                    <button class="tab-button active" onclick="showTab('stages-list')">Lista de Etapas</button>
+                    <button class="tab-button" onclick="showTab('add-stage')">Agregar Etapa</button>
+                </div>
+                
+                <div id="stages-list" class="tab-content active">
+                    <div class="stages-table-container">
+                        <table class="stages-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nombre</th>
+                                    <th>Operador</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="stages-table-body">
+                                <!-- Se carga dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div id="add-stage" class="tab-content">
+                    <form id="add-stage-form">
+                        <div class="form-group">
+                            <label>Nombre de la Etapa:</label>
+                            <input type="text" id="stage-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Descripción:</label>
+                            <textarea id="stage-description"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Operador ID:</label>
+                            <input type="text" id="operator-id">
+                        </div>
+                        <div class="form-group">
+                            <label>Nombre del Operador:</label>
+                            <input type="text" id="operator-name">
+                        </div>
+                        <div class="form-group">
+                            <label>Tiempo Objetivo (minutos):</label>
+                            <input type="number" id="target-time" value="30" min="1">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Agregar Etapa</button>
+                        <button type="button" class="btn btn-secondary" onclick="resetStageForm()">Limpiar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+    .modal {
+        position: fixed;
+        z-index: 10000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+    }
+    
+    .modal-content {
+        background-color: #fefefe;
+        margin: 5% auto;
+        border: 1px solid #888;
+        border-radius: 8px;
+        width: 80%;
+        max-width: 800px;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+    
+    .modal-header {
+        padding: 20px;
+        border-bottom: 1px solid #ddd;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .modal-body {
+        padding: 20px;
+    }
+    
+    .close {
+        color: #aaa;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    
+    .close:hover {
+        color: #000;
+    }
+    
+    .stage-management-tabs {
+        margin-bottom: 20px;
+    }
+    
+    .tab-button {
+        background-color: #f1f1f1;
+        border: none;
+        padding: 10px 20px;
+        cursor: pointer;
+        margin-right: 5px;
+        border-radius: 4px 4px 0 0;
+    }
+    
+    .tab-button.active {
+        background-color: #00B8E0;
+        color: white;
+    }
+    
+    .tab-content {
+        display: none;
+    }
+    
+    .tab-content.active {
+        display: block;
+    }
+    
+    .stages-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+    }
+    
+    .stages-table th,
+    .stages-table td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+    }
+    
+    .stages-table th {
+        background-color: #f2f2f2;
+    }
+    
+    .form-group {
+        margin-bottom: 15px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+    
+    .form-group input,
+    .form-group textarea {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+    
+    .stage-management-controls .btn-xs {
+        padding: 4px 8px;
+        font-size: 12px;
+        margin-right: 5px;
+    }
+    </style>
 
     <script src="{{ url_for('static', filename='js/jci-dashboard.js') }}"></script>
 </body>

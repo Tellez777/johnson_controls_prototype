@@ -18,6 +18,7 @@ from ..hardware.zebra_scanner import ZebraScanner
 from ..services.data_sync_service import DataSyncService
 from ..services.analytics_service import AnalyticsService
 from ..services.notification_service import NotificationService
+from .stage_manager import global_stage_manager
 
 
 @dataclass
@@ -45,8 +46,8 @@ class ScannerManager:
         self.analytics = AnalyticsService()
         self.notifications = NotificationService()
         
-        # Estado del sistema
-        self.current_stage = 1
+        # Estado del sistema - se inicializará con la primera etapa activa
+        self.current_stage = None
         self.is_running = False
         self.scan_count = 0
         self.error_count = 0
@@ -78,6 +79,25 @@ class ScannerManager:
         
         self.logger.info("Scanner Manager inicializado")
     
+    def _initialize_current_stage(self):
+        """Inicializar etapa actual con la primera etapa activa del sistema dinámico"""
+        try:
+            active_stages = global_stage_manager.get_active_stages()
+            if active_stages:
+                # Ordenar por order_position y tomar la primera
+                sorted_stages = sorted(active_stages, key=lambda x: x.get('order_position', 999))
+                self.current_stage = sorted_stages[0]['id']
+                stage_name = sorted_stages[0]['name']
+                self.logger.info(f"🎯 Etapa inicial sincronizada dinámicamente: {self.current_stage} ({stage_name})")
+            else:
+                # Fallback si no hay etapas activas
+                self.current_stage = 1
+                self.logger.warning("⚠️ No hay etapas activas, usando fallback: etapa 1")
+                
+        except Exception as e:
+            self.logger.error(f"❌ Error inicializando etapa actual: {e}")
+            self.current_stage = 1  # Fallback seguro
+    
     def initialize(self) -> bool:
         """Inicializar el sistema completo"""
         try:
@@ -100,6 +120,9 @@ class ScannerManager:
             
             # Registrar callbacks por defecto
             self._register_default_callbacks()
+            
+            # Inicializar etapa actual con la primera etapa activa del sistema dinámico
+            self._initialize_current_stage()
             
             self.session_stats['start_time'] = datetime.now()
             self.logger.info("Sistema de escaneo inicializado correctamente")
@@ -425,10 +448,11 @@ class ScannerManager:
             
             product = self.products[barcode]
             
-            # Verificar si ya completó la etapa actual
-            current_stage_execution = product.stage_executions.get(self.current_stage)
+            # Verificar si ya completó la etapa actual del producto
+            product_current_stage = product.current_stage
+            current_stage_execution = product.stage_executions.get(product_current_stage)
             if current_stage_execution and current_stage_execution.status.value == "Completado":
-                self.logger.warning(f"Producto {barcode} ya completó la etapa {self.current_stage}")
+                self.logger.warning(f"Producto {barcode} ya completó la etapa {product_current_stage}")
                 self._trigger_callback('stage_already_completed', scan_event)
                 return False
             
@@ -458,6 +482,9 @@ class ScannerManager:
         """Ejecutar el escaneo para una etapa específica"""
         stage_id = scan_event.stage_id
         
+        # Asignar operador automáticamente basado en la etapa
+        self._assign_operator_to_stage(product, stage_id, scan_event.operator_id)
+        
         # Iniciar la etapa si no ha comenzado
         if product.current_stage == stage_id:
             product.start_current_stage(scan_event.station_id)
@@ -475,8 +502,24 @@ class ScannerManager:
             self._check_notifications(product)
             
         else:
-            # Producto en etapa incorrecta
-            raise ValueError(f"Producto en etapa {product.current_stage}, se escaneó en etapa {stage_id}")
+            # Si producto no está en la etapa esperada, actualizar su etapa al sistema
+            self.logger.info(f"Producto {product.barcode} en etapa {product.current_stage}, actualizando a etapa del sistema {stage_id}")
+            product.current_stage = stage_id
+            
+            # Ahora ejecutar el procesamiento de la etapa
+            product.start_current_stage(scan_event.station_id)
+            
+            # Simular calidad (en producción real vendría de sensores/inspección)
+            quality_metrics = self._simulate_quality_metrics(product, stage_id)
+            
+            # Completar la etapa
+            product.complete_current_stage(quality_metrics)
+            
+            # Actualizar analytics
+            self.analytics.record_stage_completion(product, stage_id, quality_metrics)
+            
+            # Verificar si necesita notificaciones
+            self._check_notifications(product)
     
     def _simulate_quality_metrics(self, product: JCIProduct, stage_id: int) -> QualityMetrics:
         """Simular métricas de calidad (en producción real vendría de sensores)"""
@@ -512,7 +555,7 @@ class ScannerManager:
             
             elif command_type == 'cambiar_etapa':
                 stage = parameters.get('etapa')
-                if stage and 1 <= stage <= 6:
+                if stage and global_stage_manager.validate_stage_id(stage):
                     self.change_current_stage(stage)
             
             elif command_type == 'actualizar_estado':
@@ -535,10 +578,26 @@ class ScannerManager:
     def simulate_scan(self, barcode: str) -> bool:
         """Simular escaneo de código"""
         try:
+            # Obtener el producto para usar su etapa actual
+            if barcode not in self.products:
+                self.logger.warning(f"Producto no encontrado para simulación: {barcode}")
+                return False
+                
+            product = self.products[barcode]
+            product_stage = product.current_stage
+            
+            # Si el producto está en etapa 1, usar la primera etapa activa del sistema
+            if product_stage == 1:
+                active_stages = global_stage_manager.get_active_stages()
+                if active_stages:
+                    sorted_stages = sorted(active_stages, key=lambda x: x.get('order_position', 999))
+                    product_stage = sorted_stages[0]['id']
+                    self.logger.info(f"Producto {barcode} en etapa 1, actualizando a etapa del sistema {product_stage}")
+            
             scan_event = ScanEvent(
                 timestamp=datetime.now(),
                 barcode=barcode,
-                stage_id=self.current_stage,
+                stage_id=product_stage,
                 operator_id=self._get_current_operator(),
                 station_id=self._get_current_station(),
                 success=True
@@ -552,16 +611,18 @@ class ScannerManager:
     
     def change_current_stage(self, stage_id: int):
         """Cambiar la etapa actual del sistema"""
-        if 1 <= stage_id <= 6:
+        if global_stage_manager.validate_stage_id(stage_id):
             old_stage = self.current_stage
             self.current_stage = stage_id
             
-            self.logger.info(f"Etapa cambiada de {old_stage} a {stage_id}")
+            stage_name = global_stage_manager.get_stage_name(stage_id)
+            self.logger.info(f"Etapa cambiada de {old_stage} a {stage_id} ({stage_name})")
             self.sync_system_state()
             
             self._trigger_callback('stage_changed', {
                 'old_stage': old_stage,
-                'new_stage': stage_id
+                'new_stage': stage_id,
+                'stage_name': stage_name
             })
         else:
             raise ValueError(f"Etapa inválida: {stage_id}")
@@ -572,7 +633,14 @@ class ScannerManager:
             product = self.products[barcode]
             product.status = ProductStatus.PENDING
             product.progress_percentage = 0.0
-            product.current_stage = 1
+            
+            # Resetear a la primera etapa activa disponible
+            active_stages = global_stage_manager.get_active_stages()
+            if active_stages:
+                product.current_stage = active_stages[0]['id']
+            else:
+                product.current_stage = 1  # Fallback
+                
             product.started_at = None
             product.completed_at = None
             
@@ -582,6 +650,9 @@ class ScannerManager:
                 stage.start_time = None
                 stage.end_time = None
                 stage.duration_seconds = 0
+            
+            # Sincronizar etapas con la configuración actual
+            product.synchronize_stages()
             
             self.data_sync.sync_product(product)
             self.logger.info(f"Producto reseteado: {barcode}")
@@ -682,6 +753,102 @@ class ScannerManager:
         }
         return operators.get(self.current_stage, "OP000")
     
+    def _assign_operator_to_stage(self, product: JCIProduct, stage_id: int, operator_id: str):
+        """Asignar operador automáticamente a la etapa del producto"""
+        try:
+            self.logger.info(f"🔄 Iniciando asignación de operador para producto {product.barcode}, etapa {stage_id}")
+            
+            # Cargar operadores disponibles del sistema
+            operators_data = self.data_sync.current_state.get('operadores', {})
+            self.logger.info(f"📋 Operadores disponibles: {len(operators_data)}")
+            
+            if stage_id in product.stage_executions:
+                stage_execution = product.stage_executions[stage_id]
+                self.logger.info(f"📍 Etapa {stage_id} encontrada en producto, operador actual: '{stage_execution.operator_id}'")
+                
+                # Si ya tiene operador asignado y está activo, mantenerlo
+                if stage_execution.operator_id and stage_execution.operator_id in operators_data:
+                    operator = operators_data[stage_execution.operator_id]
+                    if operator.get('status') == 'active':
+                        self.logger.info(f"✅ Operador {stage_execution.operator_id} ya asignado y activo para etapa {stage_id}")
+                        return
+                
+                # Buscar operador apropiado para la etapa
+                self.logger.info(f"🔍 Buscando operador adecuado para etapa {stage_id}")
+                suitable_operator = self._find_suitable_operator(stage_id, operators_data)
+                
+                if suitable_operator:
+                    # Asignar el operador
+                    stage_execution.operator_id = suitable_operator['id']
+                    stage_execution.operator_name = suitable_operator['name']
+                    
+                    self.logger.info(f"✅ Operador asignado automáticamente: {suitable_operator['name']} ({suitable_operator['id']}) -> Etapa {stage_id}")
+                else:
+                    # Usar operador por defecto si no hay uno específico
+                    default_operator_id = operator_id if operator_id else self._get_current_operator()
+                    self.logger.info(f"🔧 Usando operador por defecto: {default_operator_id}")
+                    
+                    if default_operator_id in operators_data:
+                        operator_info = operators_data[default_operator_id]
+                        stage_execution.operator_id = default_operator_id
+                        stage_execution.operator_name = operator_info['name']
+                        self.logger.info(f"✅ Operador por defecto asignado: {operator_info['name']} ({default_operator_id}) -> Etapa {stage_id}")
+                    else:
+                        self.logger.warning(f"❌ No se encontró operador {default_operator_id} en la base de datos")
+                        self.logger.warning(f"❌ No se pudo asignar operador para etapa {stage_id}")
+            else:
+                self.logger.warning(f"❌ Etapa {stage_id} no encontrada en stage_executions del producto {product.barcode}")
+                        
+        except Exception as e:
+            self.logger.error(f"❌ Error asignando operador a etapa {stage_id}: {e}")
+            import traceback
+            self.logger.error(f"Traceback: {traceback.format_exc()}")
+    
+    def _find_suitable_operator(self, stage_id: int, operators_data: dict) -> dict:
+        """Encontrar operador más adecuado para una etapa específica"""
+        stage_skills_map = {
+            7: ['soldadura'],  # Soldadura
+            8: ['pulido', 'acabados'],  # Pulido
+            10: ['inspeccion', 'control_calidad', 'medicion'],  # Calidad
+            11: ['pintura', 'acabados'],  # Pintura
+            12: ['almacen', 'logistica'],  # Almacén
+            13: ['supervision']  # Prueba
+        }
+        
+        required_skills = stage_skills_map.get(stage_id, [])
+        
+        # Buscar operadores que tengan las habilidades requeridas
+        suitable_operators = []
+        for op_id, operator in operators_data.items():
+            if operator.get('status') == 'active':
+                operator_skills = operator.get('skills', [])
+                # Verificar si el operador tiene alguna de las habilidades requeridas
+                if any(skill in operator_skills for skill in required_skills):
+                    suitable_operators.append({
+                        'id': op_id,
+                        'name': operator['name'],
+                        'skills': operator_skills,
+                        'station': operator.get('station', ''),
+                        'shift': operator.get('shift', '')
+                    })
+        
+        # Si hay operadores aptos, devolver el primero (se puede mejorar con lógica de priorización)
+        if suitable_operators:
+            return suitable_operators[0]
+        
+        # Si no hay operadores específicos, buscar cualquier operador activo
+        for op_id, operator in operators_data.items():
+            if operator.get('status') == 'active':
+                return {
+                    'id': op_id,
+                    'name': operator['name'],
+                    'skills': operator.get('skills', []),
+                    'station': operator.get('station', ''),
+                    'shift': operator.get('shift', '')
+                }
+        
+        return None
+    
     def _get_current_station(self) -> str:
         """Obtener estación actual"""
         stations = {
@@ -692,6 +859,14 @@ class ScannerManager:
             5: "EST-PINT-01",
             6: "EST-ALMA-01"
         }
+        # Usar información dinámica de estaciones
+        try:
+            stage_info = global_stage_manager.get_stage(self.current_stage)
+            if stage_info and stage_info.get('station_id'):
+                return stage_info['station_id']
+        except Exception:
+            pass
+        
         return stations.get(self.current_stage, "EST-GEN-01")
     
     def _update_session_stats(self, scan_event: ScanEvent):
