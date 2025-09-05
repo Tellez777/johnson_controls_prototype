@@ -88,14 +88,14 @@ class ScannerManager:
                 sorted_stages = sorted(active_stages, key=lambda x: x.get('order_position', 999))
                 self.current_stage = sorted_stages[0]['id']
                 stage_name = sorted_stages[0]['name']
-                self.logger.info(f"🎯 Etapa inicial sincronizada dinámicamente: {self.current_stage} ({stage_name})")
+                self.logger.info(f"TARGET: Etapa inicial sincronizada dinámicamente: {self.current_stage} ({stage_name})")
             else:
                 # Fallback si no hay etapas activas
                 self.current_stage = 1
-                self.logger.warning("⚠️ No hay etapas activas, usando fallback: etapa 1")
+                self.logger.warning("WARNING: No hay etapas activas, usando fallback: etapa 1")
                 
         except Exception as e:
-            self.logger.error(f"❌ Error inicializando etapa actual: {e}")
+            self.logger.error(f"ERROR: Error inicializando etapa actual: {e}")
             self.current_stage = 1  # Fallback seguro
     
     def initialize(self) -> bool:
@@ -312,15 +312,15 @@ class ScannerManager:
                         # El estado de conexión cambió
                         self.scanner_connected = is_connected
                         status_text = "conectado" if is_connected else "desconectado"
-                        self.logger.info(f"🔄 Estado del escáner cambió: {status_text}")
+                        self.logger.info(f"REFRESH: Estado del escáner cambió: {status_text}")
                         
                         # Actualizar JSON con el estado real
                         self.data_sync.update_scanner_status(is_connected)
                         
                         if not is_connected:
-                            self.logger.warning("⚠️ Escáner desconectado - Verificar conexión física")
+                            self.logger.warning("WARNING: Escáner desconectado - Verificar conexión física")
                         else:
-                            self.logger.info("✅ Escáner reconectado exitosamente")
+                            self.logger.info("SUCCESS: Escáner reconectado exitosamente")
                     else:
                         # Log cada cierto tiempo para confirmar que está funcionando
                         self.logger.debug(f"Estado del escáner sin cambios: {'conectado' if is_connected else 'desconectado'}")
@@ -331,7 +331,7 @@ class ScannerManager:
                 
             except Exception as e:
                 if self.is_running:
-                    self.logger.error(f"❌ Error monitoreando conexión del escáner: {e}")
+                    self.logger.error(f"ERROR: Error monitoreando conexión del escáner: {e}")
                     import traceback
                     self.logger.error(f"Traceback: {traceback.format_exc()}")
                     time.sleep(2)
@@ -754,55 +754,95 @@ class ScannerManager:
         return operators.get(self.current_stage, "OP000")
     
     def _assign_operator_to_stage(self, product: JCIProduct, stage_id: int, operator_id: str):
-        """Asignar operador automáticamente a la etapa del producto"""
+        """Asignar operador automáticamente a la etapa del producto usando gestión dinámica"""
         try:
-            self.logger.info(f"🔄 Iniciando asignación de operador para producto {product.barcode}, etapa {stage_id}")
+            self.logger.info(f"OPERATOR_ASSIGN: Iniciando asignación de operador para producto {product.barcode}, etapa {stage_id}")
             
-            # Cargar operadores disponibles del sistema
-            operators_data = self.data_sync.current_state.get('operadores', {})
-            self.logger.info(f"📋 Operadores disponibles: {len(operators_data)}")
+            # Usar el nuevo gestor de operadores dinámicos
+            from ..utils.operators_manager import operators_manager
+            
+            # Cargar todos los operadores disponibles (dinámico)
+            all_operators = operators_manager.get_all_operators()
+            self.logger.info(f"OPERATOR_ASSIGN: Operadores disponibles: {len(all_operators)}")
             
             if stage_id in product.stage_executions:
                 stage_execution = product.stage_executions[stage_id]
-                self.logger.info(f"📍 Etapa {stage_id} encontrada en producto, operador actual: '{stage_execution.operator_id}'")
+                self.logger.info(f"OPERATOR_ASSIGN: Etapa {stage_id} encontrada, operador actual: '{stage_execution.operator_id}'")
                 
                 # Si ya tiene operador asignado y está activo, mantenerlo
-                if stage_execution.operator_id and stage_execution.operator_id in operators_data:
-                    operator = operators_data[stage_execution.operator_id]
-                    if operator.get('status') == 'active':
-                        self.logger.info(f"✅ Operador {stage_execution.operator_id} ya asignado y activo para etapa {stage_id}")
+                if stage_execution.operator_id and stage_execution.operator_id in all_operators:
+                    current_operator = all_operators[stage_execution.operator_id]
+                    if current_operator.get('active', True):
+                        self.logger.info(f"OPERATOR_ASSIGN: Operador {stage_execution.operator_id} ya asignado y activo")
                         return
                 
-                # Buscar operador apropiado para la etapa
-                self.logger.info(f"🔍 Buscando operador adecuado para etapa {stage_id}")
-                suitable_operator = self._find_suitable_operator(stage_id, operators_data)
+                # Buscar el mejor operador para esta etapa específica
+                best_operator = operators_manager.find_best_operator_for_stage(stage_id)
                 
-                if suitable_operator:
-                    # Asignar el operador
-                    stage_execution.operator_id = suitable_operator['id']
-                    stage_execution.operator_name = suitable_operator['name']
+                if best_operator:
+                    # Asignar el operador encontrado
+                    stage_execution.operator_id = best_operator['id']
+                    stage_execution.operator_name = best_operator['name']
+                    stage_execution.station_id = best_operator.get('station', '')
                     
-                    self.logger.info(f"✅ Operador asignado automáticamente: {suitable_operator['name']} ({suitable_operator['id']}) -> Etapa {stage_id}")
+                    self.logger.info(f"OPERATOR_ASSIGN: Operador asignado exitosamente:")
+                    self.logger.info(f"  - ID: {best_operator['id']}")
+                    self.logger.info(f"  - Nombre: {best_operator['name']}")
+                    self.logger.info(f"  - Estación: {best_operator.get('station', 'N/A')}")
+                    self.logger.info(f"  - Fuente: {best_operator.get('source', 'unknown')}")
+                    
+                    # Actualizar operador en la ejecución de etapa
+                    if stage_id in product.stage_executions:
+                        product.stage_executions[stage_id].operator_id = best_operator['id']
+                        self.logger.info(f"OPERATOR_ASSIGN: Operador {best_operator['id']} asignado a etapa {stage_id}")
                 else:
-                    # Usar operador por defecto si no hay uno específico
-                    default_operator_id = operator_id if operator_id else self._get_current_operator()
-                    self.logger.info(f"🔧 Usando operador por defecto: {default_operator_id}")
+                    # Si no hay operador específico, usar operador genérico desde stages
+                    self.logger.warning(f"OPERATOR_ASSIGN: No se encontró operador específico para etapa {stage_id}")
                     
-                    if default_operator_id in operators_data:
-                        operator_info = operators_data[default_operator_id]
-                        stage_execution.operator_id = default_operator_id
-                        stage_execution.operator_name = operator_info['name']
-                        self.logger.info(f"✅ Operador por defecto asignado: {operator_info['name']} ({default_operator_id}) -> Etapa {stage_id}")
+                    # Buscar operador genérico en la configuración de etapas
+                    stage_operator = self._get_stage_default_operator(stage_id)
+                    if stage_operator:
+                        stage_execution.operator_name = stage_operator
+                        stage_execution.operator_id = ""  # Sin ID específico
+                        self.logger.info(f"OPERATOR_ASSIGN: Usando operador de etapa por defecto: {stage_operator}")
                     else:
-                        self.logger.warning(f"❌ No se encontró operador {default_operator_id} en la base de datos")
-                        self.logger.warning(f"❌ No se pudo asignar operador para etapa {stage_id}")
+                        self.logger.warning(f"OPERATOR_ASSIGN: No se pudo asignar operador para etapa {stage_id}")
             else:
-                self.logger.warning(f"❌ Etapa {stage_id} no encontrada en stage_executions del producto {product.barcode}")
-                        
+                self.logger.warning(f"OPERATOR_ASSIGN: Etapa {stage_id} no encontrada en producto {product.barcode}")
+                
         except Exception as e:
-            self.logger.error(f"❌ Error asignando operador a etapa {stage_id}: {e}")
-            import traceback
-            self.logger.error(f"Traceback: {traceback.format_exc()}")
+            self.logger.error(f"OPERATOR_ASSIGN: Error asignando operador a etapa {stage_id}: {e}")
+            # En caso de error, intentar asignar información básica
+            if stage_id in product.stage_executions:
+                stage_execution = product.stage_executions[stage_id]
+                stage_operator = self._get_stage_default_operator(stage_id)
+                if stage_operator:
+                    stage_execution.operator_name = stage_operator
+                    stage_execution.operator_id = ""
+                    self.logger.info(f"OPERATOR_ASSIGN: Fallback - usando operador de configuración: {stage_operator}")
+                else:
+                    stage_execution.operator_name = "Sistema Automático"
+                    stage_execution.operator_id = "AUTO"
+    
+    def _get_stage_default_operator(self, stage_id: int) -> str:
+        """Obtener operador por defecto desde la configuración de etapas"""
+        try:
+            from ..utils import config
+            import json
+            
+            stages_file = config.get_data_path("json") / "stages_config.json"
+            if stages_file.exists():
+                with open(stages_file, 'r', encoding='utf-8') as f:
+                    stages_data = json.load(f)
+                
+                for stage in stages_data.get('stages', []):
+                    if stage.get('id') == stage_id:
+                        return stage.get('operator_name', '').strip()
+            
+            return ""
+        except Exception as e:
+            self.logger.error(f"OPERATOR_ASSIGN: Error obteniendo operador de etapa {stage_id}: {e}")
+            return ""
     
     def _find_suitable_operator(self, stage_id: int, operators_data: dict) -> dict:
         """Encontrar operador más adecuado para una etapa específica"""

@@ -18,98 +18,98 @@
       "target_cycle_time": 420,
       "status": "Completado",
       "progress_percentage": 100.0,
-      "current_stage": 13,
+      "current_stage": 25,
       "created_at": "2025-09-05T00:30:37.293668",
-      "started_at": "2025-09-05T00:32:22.127382",
-      "completed_at": "2025-09-05T01:00:30.458368",
-      "last_updated": "2025-09-05T01:00:30.458369",
-      "total_cycle_time": 1688,
-      "efficiency_score": 24.881516587677723,
-      "quality_score": 94.08672157361045,
+      "started_at": "2025-09-05T07:17:46.418808",
+      "completed_at": "2025-09-05T07:25:56.168890",
+      "last_updated": "2025-09-05T07:25:56.168892",
+      "total_cycle_time": 489,
+      "efficiency_score": 85.88957055214725,
+      "quality_score": 94.65752305073333,
       "priority": "Normal",
       "notes": "",
       "tags": [],
       "stage_executions": {
-        "7": {
-          "stage_id": 7,
+        "20": {
+          "stage_id": 20,
           "stage_name": "Soldadura",
           "operator_id": "",
-          "operator_name": "Lucero Martinez",
-          "start_time": null,
-          "end_time": null,
-          "duration_seconds": 0,
-          "status": "No Iniciado",
-          "quality_score": 100.0,
-          "defect_count": 0,
-          "notes": "",
-          "station_id": ""
-        },
-        "8": {
-          "stage_id": 8,
-          "stage_name": "Pulido",
-          "operator_id": "",
-          "operator_name": "Felipe Hernandez",
-          "start_time": null,
-          "end_time": null,
-          "duration_seconds": 0,
-          "status": "No Iniciado",
-          "quality_score": 100.0,
-          "defect_count": 0,
-          "notes": "",
-          "station_id": ""
-        },
-        "10": {
-          "stage_id": 10,
-          "stage_name": "Calidad",
-          "operator_id": "",
-          "operator_name": "Control de Calidad",
-          "start_time": null,
-          "end_time": null,
-          "duration_seconds": 0,
-          "status": "No Iniciado",
-          "quality_score": 100.0,
-          "defect_count": 0,
-          "notes": "",
-          "station_id": ""
-        },
-        "11": {
-          "stage_id": 11,
-          "stage_name": "Pintura",
-          "operator_id": "",
-          "operator_name": "Acabados Finales",
-          "start_time": null,
-          "end_time": null,
-          "duration_seconds": 0,
-          "status": "No Iniciado",
-          "quality_score": 100.0,
-          "defect_count": 0,
-          "notes": "",
-          "station_id": ""
-        },
-        "12": {
-          "stage_id": 12,
-          "stage_name": "Almacen",
-          "operator_id": "",
-          "operator_name": "",
-          "start_time": null,
-          "end_time": null,
-          "duration_seconds": 0,
-          "status": "No Iniciado",
-          "quality_score": 100.0,
-          "defect_count": 0,
-          "notes": "",
-          "station_id": ""
-        },
-        "13": {
-          "stage_id": 13,
-          "stage_name": "Prueba Operador",
-          "operator_id": "OP001",
-          "operator_name": "Maria Rodriguez",
-          "start_time": "2025-09-05T01:00:30.458312",
-          "end_time": "2025-09-05T01:00:30.458331",
+          "operator_name": "Soldador Principal",
+          "start_time": "2025-09-05T07:25:19.792731",
+          "end_time": "2025-09-05T07:25:19.792753",
           "duration_seconds": 0,
           "status": "Completado",
-          "quality_score": 94.08672157361045,
+          "quality_score": 91.94662123477936,
+          "defect_count": 0,
+          "notes": "",
+          "station_id": "EST-SOL-01"
+        },
+        "21": {
+          "stage_id": 21,
+          "stage_name": "Pulido",
+          "operator_id": "",
+          "operator_name": "Especialista Pulido",
+          "start_time": "2025-09-05T07:25:47.387959",
+          "end_time": "2025-09-05T07:25:47.387981",
+          "duration_seconds": 0,
+          "status": "Completado",
+          "quality_score": 96.65031690313613,
+          "defect_count": 0,
+          "notes": "",
+          "station_id": "EST-SOL-01"
+        },
+        "22": {
+          "stage_id": 22,
+          "stage_name": "Ensamblado",
+          "operator_id": "",
+          "operator_name": "Tecnico Ensamblado",
+          "start_time": "2025-09-05T07:25:49.453473",
+          "end_time": "2025-09-05T07:25:49.453490",
+          "duration_seconds": 0,
+          "status": "Completado",
+          "quality_score": 93.1214057437019,
+          "defect_count": 0,
+          "notes": "",
+          "station_id": "EST-SOL-01"
+        },
+        "23": {
+          "stage_id": 23,
+          "stage_name": "Control Calidad",
+          "operator_id": "",
+          "operator_name": "Inspector Calidad",
+          "start_time": "2025-09-05T07:25:52.028472",
+          "end_time": "2025-09-05T07:25:52.028488",
+          "duration_seconds": 0,
+          "status": "Completado",
+          "quality_score": 96.58402932761007,
+          "defect_count": 0,
+          "notes": "",
+          "station_id": "EST-SOL-01"
+        },
+        "24": {
+          "stage_id": 24,
+          "stage_name": "Pintura",
+          "operator_id": "",
+          "operator_name": "Pintor Especializado",
+          "start_time": "2025-09-05T07:25:54.098606",
+          "end_time": "2025-09-05T07:25:54.098625",
+          "duration_seconds": 0,
+          "status": "Completado",
+          "quality_score": 93.433606770898,
+          "defect_count": 0,
+          "notes": "",
+          "station_id": "EST-SOL-01"
+        },
+        "25": {
+          "stage_id": 25,
+          "stage_name": "Embalaje",
+          "operator_id": "",
+          "operator_name": "Encargado Embalaje",
+          "start_time": "2025-09-05T07:25:56.168839",
+          "end_time": "2025-09-05T07:25:56.168859",
+          "duration_seconds": 0,
+          "status": "Completado",
+          "quality_score": 96.20915832427448,
           "defect_count": 0,
           "notes": "",
           "station_id": "EST-SOL-01"
@@ -128,39 +128,39 @@
       "revision": "Rev-B",
       "specification": "JCI-SPEC-BATT-2024-B",
       "target_cycle_time": 380,
-      "status": "Pendiente",
-      "progress_percentage": 0.0,
-      "current_stage": 7,
+      "status": "En Proceso",
+      "progress_percentage": 16.666666666666664,
+      "current_stage": 21,
       "created_at": "2025-09-05T00:30:37.310138",
-      "started_at": null,
+      "started_at": "2025-09-05T07:18:59.405467",
       "completed_at": null,
-      "last_updated": "2025-09-05T00:32:23.203437",
+      "last_updated": "2025-09-05T07:26:32.285117",
       "total_cycle_time": 0,
       "efficiency_score": 0.0,
-      "quality_score": 93.46909736051569,
+      "quality_score": 92.00444548937793,
       "priority": "Normal",
       "notes": "",
       "tags": [],
       "stage_executions": {
-        "7": {
-          "stage_id": 7,
+        "20": {
+          "stage_id": 20,
           "stage_name": "Soldadura",
           "operator_id": "",
-          "operator_name": "Lucero Martinez",
-          "start_time": null,
-          "end_time": null,
+          "operator_name": "Soldador Principal",
+          "start_time": "2025-09-05T07:26:32.285067",
+          "end_time": "2025-09-05T07:26:32.285104",
           "duration_seconds": 0,
-          "status": "No Iniciado",
-          "quality_score": 93.46909736051569,
+          "status": "Completado",
+          "quality_score": 92.00444548937793,
           "defect_count": 0,
           "notes": "",
           "station_id": "EST-SOL-01"
         },
-        "8": {
-          "stage_id": 8,
+        "21": {
+          "stage_id": 21,
           "stage_name": "Pulido",
           "operator_id": "",
-          "operator_name": "Felipe Hernandez",
+          "operator_name": "Especialista Pulido",
           "start_time": null,
           "end_time": null,
           "duration_seconds": 0,
@@ -170,11 +170,11 @@
           "notes": "",
           "station_id": ""
         },
-        "10": {
-          "stage_id": 10,
-          "stage_name": "Calidad",
+        "22": {
+          "stage_id": 22,
+          "stage_name": "Ensamblado",
           "operator_id": "",
-          "operator_name": "Control de Calidad",
+          "operator_name": "Tecnico Ensamblado",
           "start_time": null,
           "end_time": null,
           "duration_seconds": 0,
@@ -184,11 +184,25 @@
           "notes": "",
           "station_id": ""
         },
-        "11": {
-          "stage_id": 11,
+        "23": {
+          "stage_id": 23,
+          "stage_name": "Control Calidad",
+          "operator_id": "",
+          "operator_name": "Inspector Calidad",
+          "start_time": null,
+          "end_time": null,
+          "duration_seconds": 0,
+          "status": "No Iniciado",
+          "quality_score": 100.0,
+          "defect_count": 0,
+          "notes": "",
+          "station_id": ""
+        },
+        "24": {
+          "stage_id": 24,
           "stage_name": "Pintura",
           "operator_id": "",
-          "operator_name": "Acabados Finales",
+          "operator_name": "Pintor Especializado",
           "start_time": null,
           "end_time": null,
           "duration_seconds": 0,
@@ -198,25 +212,11 @@
           "notes": "",
           "station_id": ""
         },
-        "12": {
-          "stage_id": 12,
-          "stage_name": "Almacen",
+        "25": {
+          "stage_id": 25,
+          "stage_name": "Embalaje",
           "operator_id": "",
-          "operator_name": "",
-          "start_time": null,
-          "end_time": null,
-          "duration_seconds": 0,
-          "status": "No Iniciado",
-          "quality_score": 100.0,
-          "defect_count": 0,
-          "notes": "",
-          "station_id": ""
-        },
-        "13": {
-          "stage_id": 13,
-          "stage_name": "Prueba Operador",
-          "operator_id": "OP001",
-          "operator_name": "Maria Rodriguez",
+          "operator_name": "Encargado Embalaje",
           "start_time": null,
           "end_time": null,
           "duration_seconds": 0,
@@ -240,16 +240,16 @@
       "revision": "Rev-A",
       "specification": "JCI-SPEC-HVAC-TEST-A",
       "target_cycle_time": 300,
-      "status": "En Proceso",
-      "progress_percentage": 16.666666666666664,
-      "current_stage": 8,
+      "status": "Pendiente",
+      "progress_percentage": 0.0,
+      "current_stage": 1,
       "created_at": "2025-09-05T00:30:37.310174",
-      "started_at": "2025-09-05T00:32:24.275946",
+      "started_at": null,
       "completed_at": null,
-      "last_updated": "2025-09-05T00:32:24.275973",
+      "last_updated": "2025-09-05T07:16:05.311812",
       "total_cycle_time": 0,
       "efficiency_score": 0.0,
-      "quality_score": 96.75748304699992,
+      "quality_score": 100.0,
       "priority": "Normal",
       "notes": "",
       "tags": [],
@@ -259,11 +259,11 @@
           "stage_name": "Soldadura",
           "operator_id": "",
           "operator_name": "Lucero Martinez",
-          "start_time": "2025-09-05T00:32:24.275942",
-          "end_time": "2025-09-05T00:32:24.275962",
+          "start_time": null,
+          "end_time": null,
           "duration_seconds": 0,
-          "status": "Completado",
-          "quality_score": 96.75748304699992,
+          "status": "No Iniciado",
+          "quality_score": 100.0,
           "defect_count": 0,
           "notes": "",
           "station_id": "EST-SOL-01"
@@ -327,7 +327,7 @@
         "13": {
           "stage_id": 13,
           "stage_name": "Prueba Operador",
-          "operator_id": "OP001",
+          "operator_id": "",
           "operator_name": "Maria Rodriguez",
           "start_time": null,
           "end_time": null,
@@ -338,6 +338,45 @@
           "notes": "",
           "station_id": ""
         }
+      },
+      "previous_stage": 13,
+      "stage_progress": {
+        "completed_stages": 0,
+        "completion_percentage": 0.0,
+        "current_stage": 1,
+        "stages_detail": {
+          "7": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          },
+          "8": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          },
+          "10": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          },
+          "11": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          },
+          "12": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          },
+          "13": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          }
+        },
+        "total_stages": 6
       }
     },
     "fwe24gvfd": {
@@ -354,11 +393,11 @@
       "target_cycle_time": 280,
       "status": "Pendiente",
       "progress_percentage": 0.0,
-      "current_stage": 7,
+      "current_stage": 1,
       "created_at": "2025-09-05T00:30:37.310201",
       "started_at": null,
       "completed_at": null,
-      "last_updated": "2025-09-05T00:30:37.310221",
+      "last_updated": "2025-09-05T07:16:05.311884",
       "total_cycle_time": 0,
       "efficiency_score": 0.0,
       "quality_score": 100.0,
@@ -450,6 +489,45 @@
           "notes": "",
           "station_id": ""
         }
+      },
+      "previous_stage": 13,
+      "stage_progress": {
+        "completed_stages": 0,
+        "completion_percentage": 0.0,
+        "current_stage": 1,
+        "stages_detail": {
+          "7": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          },
+          "8": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          },
+          "10": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          },
+          "11": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          },
+          "12": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          },
+          "13": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          }
+        },
+        "total_stages": 6
       }
     },
     "fdgffdwwd3": {
@@ -466,11 +544,11 @@
       "target_cycle_time": 250,
       "status": "Pendiente",
       "progress_percentage": 0.0,
-      "current_stage": 7,
+      "current_stage": 1,
       "created_at": "2025-09-05T00:30:37.310226",
       "started_at": null,
       "completed_at": null,
-      "last_updated": "2025-09-05T00:30:37.310246",
+      "last_updated": "2025-09-05T07:16:05.311952",
       "total_cycle_time": 0,
       "efficiency_score": 0.0,
       "quality_score": 100.0,
@@ -490,7 +568,7 @@
           "quality_score": 100.0,
           "defect_count": 0,
           "notes": "",
-          "station_id": ""
+          "station_id": "EST-SOL-01"
         },
         "8": {
           "stage_id": 8,
@@ -562,6 +640,45 @@
           "notes": "",
           "station_id": ""
         }
+      },
+      "previous_stage": 13,
+      "stage_progress": {
+        "completed_stages": 0,
+        "completion_percentage": 0.0,
+        "current_stage": 1,
+        "stages_detail": {
+          "7": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          },
+          "8": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          },
+          "10": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          },
+          "11": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          },
+          "12": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          },
+          "13": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          }
+        },
+        "total_stages": 6
       }
     },
     "JCI240003C": {
@@ -576,53 +693,67 @@
       "revision": "Rev-A",
       "specification": "JCI-SPEC-INT-2024-C",
       "target_cycle_time": 300,
-      "status": "Pendiente",
-      "progress_percentage": 0.0,
-      "current_stage": 7,
+      "status": "En Proceso",
+      "progress_percentage": 50.0,
+      "current_stage": 23,
       "created_at": "2025-09-05T00:30:37.310251",
-      "started_at": null,
+      "started_at": "2025-09-05T07:36:51.852238",
       "completed_at": null,
-      "last_updated": "2025-09-05T00:30:37.310271",
+      "last_updated": "2025-09-05T07:37:18.011254",
       "total_cycle_time": 0,
       "efficiency_score": 0.0,
-      "quality_score": 100.0,
+      "quality_score": 91.7062103974647,
       "priority": "Normal",
       "notes": "",
       "tags": [],
       "stage_executions": {
-        "7": {
-          "stage_id": 7,
+        "20": {
+          "stage_id": 20,
           "stage_name": "Soldadura",
           "operator_id": "",
-          "operator_name": "Lucero Martinez",
-          "start_time": null,
-          "end_time": null,
+          "operator_name": "Soldador Principal",
+          "start_time": "2025-09-05T07:36:51.852234",
+          "end_time": "2025-09-05T07:36:51.852252",
           "duration_seconds": 0,
-          "status": "No Iniciado",
-          "quality_score": 100.0,
+          "status": "Completado",
+          "quality_score": 92.2620757958122,
           "defect_count": 0,
           "notes": "",
-          "station_id": ""
+          "station_id": "EST-SOL-01"
         },
-        "8": {
-          "stage_id": 8,
+        "21": {
+          "stage_id": 21,
           "stage_name": "Pulido",
           "operator_id": "",
-          "operator_name": "Felipe Hernandez",
-          "start_time": null,
-          "end_time": null,
+          "operator_name": "Especialista Pulido",
+          "start_time": "2025-09-05T07:37:15.941574",
+          "end_time": "2025-09-05T07:37:15.941594",
           "duration_seconds": 0,
-          "status": "No Iniciado",
-          "quality_score": 100.0,
+          "status": "Completado",
+          "quality_score": 91.01519093839023,
           "defect_count": 0,
           "notes": "",
-          "station_id": ""
+          "station_id": "EST-SOL-01"
         },
-        "10": {
-          "stage_id": 10,
-          "stage_name": "Calidad",
+        "22": {
+          "stage_id": 22,
+          "stage_name": "Ensamblado",
           "operator_id": "",
-          "operator_name": "Control de Calidad",
+          "operator_name": "Tecnico Ensamblado",
+          "start_time": "2025-09-05T07:37:18.011225",
+          "end_time": "2025-09-05T07:37:18.011241",
+          "duration_seconds": 0,
+          "status": "Completado",
+          "quality_score": 91.84136445819165,
+          "defect_count": 0,
+          "notes": "",
+          "station_id": "EST-SOL-01"
+        },
+        "23": {
+          "stage_id": 23,
+          "stage_name": "Control Calidad",
+          "operator_id": "",
+          "operator_name": "Inspector Calidad",
           "start_time": null,
           "end_time": null,
           "duration_seconds": 0,
@@ -632,11 +763,11 @@
           "notes": "",
           "station_id": ""
         },
-        "11": {
-          "stage_id": 11,
+        "24": {
+          "stage_id": 24,
           "stage_name": "Pintura",
           "operator_id": "",
-          "operator_name": "Acabados Finales",
+          "operator_name": "Pintor Especializado",
           "start_time": null,
           "end_time": null,
           "duration_seconds": 0,
@@ -646,25 +777,11 @@
           "notes": "",
           "station_id": ""
         },
-        "12": {
-          "stage_id": 12,
-          "stage_name": "Almacen",
+        "25": {
+          "stage_id": 25,
+          "stage_name": "Embalaje",
           "operator_id": "",
-          "operator_name": "",
-          "start_time": null,
-          "end_time": null,
-          "duration_seconds": 0,
-          "status": "No Iniciado",
-          "quality_score": 100.0,
-          "defect_count": 0,
-          "notes": "",
-          "station_id": ""
-        },
-        "13": {
-          "stage_id": 13,
-          "stage_name": "Prueba Operador",
-          "operator_id": "",
-          "operator_name": "Maria Rodriguez",
+          "operator_name": "Encargado Embalaje",
           "start_time": null,
           "end_time": null,
           "duration_seconds": 0,
@@ -690,11 +807,11 @@
       "target_cycle_time": 350,
       "status": "Pendiente",
       "progress_percentage": 0.0,
-      "current_stage": 7,
+      "current_stage": 1,
       "created_at": "2025-09-05T00:30:37.310276",
       "started_at": null,
       "completed_at": null,
-      "last_updated": "2025-09-05T00:30:37.310297",
+      "last_updated": "2025-09-05T07:16:05.312086",
       "total_cycle_time": 0,
       "efficiency_score": 0.0,
       "quality_score": 100.0,
@@ -714,7 +831,7 @@
           "quality_score": 100.0,
           "defect_count": 0,
           "notes": "",
-          "station_id": ""
+          "station_id": "EST-SOL-01"
         },
         "8": {
           "stage_id": 8,
@@ -728,7 +845,7 @@
           "quality_score": 100.0,
           "defect_count": 0,
           "notes": "",
-          "station_id": ""
+          "station_id": "EST-SOL-01"
         },
         "10": {
           "stage_id": 10,
@@ -742,7 +859,7 @@
           "quality_score": 100.0,
           "defect_count": 0,
           "notes": "",
-          "station_id": ""
+          "station_id": "EST-SOL-01"
         },
         "11": {
           "stage_id": 11,
@@ -786,6 +903,45 @@
           "notes": "",
           "station_id": ""
         }
+      },
+      "previous_stage": 13,
+      "stage_progress": {
+        "completed_stages": 0,
+        "completion_percentage": 0.0,
+        "current_stage": 1,
+        "stages_detail": {
+          "7": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          },
+          "8": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          },
+          "10": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          },
+          "11": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          },
+          "12": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          },
+          "13": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          }
+        },
+        "total_stages": 6
       }
     },
     "sens0r9air2": {
@@ -802,11 +958,11 @@
       "target_cycle_time": 220,
       "status": "Pendiente",
       "progress_percentage": 0.0,
-      "current_stage": 7,
+      "current_stage": 1,
       "created_at": "2025-09-05T00:30:37.310301",
       "started_at": null,
       "completed_at": null,
-      "last_updated": "2025-09-05T00:30:37.310322",
+      "last_updated": "2025-09-05T07:16:05.312151",
       "total_cycle_time": 0,
       "efficiency_score": 0.0,
       "quality_score": 100.0,
@@ -898,6 +1054,45 @@
           "notes": "",
           "station_id": ""
         }
+      },
+      "previous_stage": 13,
+      "stage_progress": {
+        "completed_stages": 0,
+        "completion_percentage": 0.0,
+        "current_stage": 1,
+        "stages_detail": {
+          "7": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          },
+          "8": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          },
+          "10": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          },
+          "11": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          },
+          "12": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          },
+          "13": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          }
+        },
+        "total_stages": 6
       }
     },
     "act8uator5v": {
@@ -914,11 +1109,11 @@
       "target_cycle_time": 290,
       "status": "Pendiente",
       "progress_percentage": 0.0,
-      "current_stage": 7,
+      "current_stage": 1,
       "created_at": "2025-09-05T00:30:37.310326",
       "started_at": null,
       "completed_at": null,
-      "last_updated": "2025-09-05T00:30:37.310345",
+      "last_updated": "2025-09-05T07:16:05.312216",
       "total_cycle_time": 0,
       "efficiency_score": 0.0,
       "quality_score": 100.0,
@@ -1010,6 +1205,45 @@
           "notes": "",
           "station_id": ""
         }
+      },
+      "previous_stage": 13,
+      "stage_progress": {
+        "completed_stages": 0,
+        "completion_percentage": 0.0,
+        "current_stage": 1,
+        "stages_detail": {
+          "7": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          },
+          "8": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          },
+          "10": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          },
+          "11": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          },
+          "12": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          },
+          "13": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          }
+        },
+        "total_stages": 6
       }
     },
     "disp1ay4led": {
@@ -1026,11 +1260,11 @@
       "target_cycle_time": 410,
       "status": "Pendiente",
       "progress_percentage": 0.0,
-      "current_stage": 7,
+      "current_stage": 1,
       "created_at": "2025-09-05T00:30:37.310350",
       "started_at": null,
       "completed_at": null,
-      "last_updated": "2025-09-05T00:30:37.310370",
+      "last_updated": "2025-09-05T07:16:05.312282",
       "total_cycle_time": 0,
       "efficiency_score": 0.0,
       "quality_score": 100.0,
@@ -1122,6 +1356,45 @@
           "notes": "",
           "station_id": ""
         }
+      },
+      "previous_stage": 13,
+      "stage_progress": {
+        "completed_stages": 0,
+        "completion_percentage": 0.0,
+        "current_stage": 1,
+        "stages_detail": {
+          "7": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          },
+          "8": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          },
+          "10": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          },
+          "11": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          },
+          "12": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          },
+          "13": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          }
+        },
+        "total_stages": 6
       }
     },
     "valve6flow3": {
@@ -1138,11 +1411,11 @@
       "target_cycle_time": 365,
       "status": "Pendiente",
       "progress_percentage": 0.0,
-      "current_stage": 7,
+      "current_stage": 1,
       "created_at": "2025-09-05T00:30:37.310378",
       "started_at": null,
       "completed_at": null,
-      "last_updated": "2025-09-05T00:30:37.310476",
+      "last_updated": "2025-09-05T07:16:05.312347",
       "total_cycle_time": 0,
       "efficiency_score": 0.0,
       "quality_score": 100.0,
@@ -1234,6 +1507,45 @@
           "notes": "",
           "station_id": ""
         }
+      },
+      "previous_stage": 13,
+      "stage_progress": {
+        "completed_stages": 0,
+        "completion_percentage": 0.0,
+        "current_stage": 1,
+        "stages_detail": {
+          "7": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          },
+          "8": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          },
+          "10": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          },
+          "11": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          },
+          "12": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          },
+          "13": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          }
+        },
+        "total_stages": 6
       }
     },
     "relay8power1": {
@@ -1250,11 +1562,11 @@
       "target_cycle_time": 180,
       "status": "Pendiente",
       "progress_percentage": 0.0,
-      "current_stage": 7,
+      "current_stage": 1,
       "created_at": "2025-09-05T00:30:37.310510",
       "started_at": null,
       "completed_at": null,
-      "last_updated": "2025-09-05T00:30:37.310573",
+      "last_updated": "2025-09-05T07:16:05.312412",
       "total_cycle_time": 0,
       "efficiency_score": 0.0,
       "quality_score": 100.0,
@@ -1346,6 +1658,45 @@
           "notes": "",
           "station_id": ""
         }
+      },
+      "previous_stage": 13,
+      "stage_progress": {
+        "completed_stages": 0,
+        "completion_percentage": 0.0,
+        "current_stage": 1,
+        "stages_detail": {
+          "7": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          },
+          "8": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          },
+          "10": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          },
+          "11": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          },
+          "12": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          },
+          "13": {
+            "completed": false,
+            "duration": 0,
+            "quality": 100.0
+          }
+        },
+        "total_stages": 6
       }
     }
   },
@@ -1360,8 +1711,88 @@
   "statistics": {
     "total": 12,
     "completed": 1,
-    "in_progress": 1,
-    "pending": 10,
+    "in_progress": 2,
+    "pending": 9,
     "completion_rate": 8.333333333333332
+  },
+  "operadores": {
+    "OP001": {
+      "id": "OP001",
+      "name": "Soldador Principal",
+      "shift": "Diurno",
+      "station": "EST-SOL-01",
+      "status": "active",
+      "skills": [
+        "soldadura_mig",
+        "soldadura_tig"
+      ],
+      "created_at": "2025-09-05T07:23:58.149810",
+      "updated_at": "2025-09-05T07:23:58.149816"
+    },
+    "OP002": {
+      "id": "OP002",
+      "name": "Especialista Pulido",
+      "shift": "Diurno",
+      "station": "EST-PUL-01",
+      "status": "active",
+      "skills": [
+        "pulido_automatico",
+        "acabado_superficial"
+      ],
+      "created_at": "2025-09-05T07:24:05.832431",
+      "updated_at": "2025-09-05T07:24:05.832438"
+    },
+    "OP003": {
+      "id": "OP003",
+      "name": "Tecnico Ensamblado",
+      "shift": "Diurno",
+      "station": "EST-ENS-01",
+      "status": "active",
+      "skills": [
+        "ensamblado_mecanico",
+        "montaje_electronico"
+      ],
+      "created_at": "2025-09-05T07:24:06.111217",
+      "updated_at": "2025-09-05T07:24:06.111223"
+    },
+    "OP004": {
+      "id": "OP004",
+      "name": "Inspector Calidad",
+      "shift": "Diurno",
+      "station": "EST-QC-01",
+      "status": "active",
+      "skills": [
+        "control_dimensional",
+        "inspeccion_visual"
+      ],
+      "created_at": "2025-09-05T07:24:13.728908",
+      "updated_at": "2025-09-05T07:24:13.728914"
+    },
+    "OP005": {
+      "id": "OP005",
+      "name": "Pintor Especializado",
+      "shift": "Diurno",
+      "station": "EST-PIN-01",
+      "status": "active",
+      "skills": [
+        "pintura_electrostatica",
+        "acabado_premium"
+      ],
+      "created_at": "2025-09-05T07:24:13.987270",
+      "updated_at": "2025-09-05T07:24:13.987277"
+    },
+    "OP006": {
+      "id": "OP006",
+      "name": "Encargado Embalaje",
+      "shift": "Diurno",
+      "station": "EST-EMB-01",
+      "status": "active",
+      "skills": [
+        "embalaje_especializado",
+        "control_inventario"
+      ],
+      "created_at": "2025-09-05T07:24:19.618899",
+      "updated_at": "2025-09-05T07:24:19.618905"
+    }
   }
 }

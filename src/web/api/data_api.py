@@ -762,8 +762,9 @@ class DataAPI:
         def get_operators():
             """Obtener lista de operadores"""
             try:
-                # Generar operadores desde las etapas configuradas
-                operators = self._generate_operators_from_stages()
+                # Usar el nuevo gestor unificado de operadores
+                from ...utils.operators_manager import operators_manager
+                operators = operators_manager.get_all_operators()
                 
                 return jsonify({
                     'success': True,
@@ -835,6 +836,10 @@ class DataAPI:
                 
                 # Guardar cambios
                 if self._save_system_state(state_data):
+                    # Invalidar caché del gestor de operadores
+                    from ...utils.operators_manager import operators_manager
+                    operators_manager.invalidate_cache()
+                    
                     self.logger.info(f"Operador {operator_id} agregado: {data['name']}")
                     return jsonify({
                         'success': True,
@@ -893,6 +898,10 @@ class DataAPI:
                 
                 # Guardar cambios
                 if self._save_system_state(state_data):
+                    # Invalidar caché del gestor de operadores
+                    from ...utils.operators_manager import operators_manager
+                    operators_manager.invalidate_cache()
+                    
                     self.logger.info(f"Operador {operator_id} actualizado")
                     return jsonify({
                         'success': True,
@@ -932,6 +941,10 @@ class DataAPI:
                 
                 # Guardar cambios
                 if self._save_system_state(state_data):
+                    # Invalidar caché del gestor de operadores
+                    from ...utils.operators_manager import operators_manager
+                    operators_manager.invalidate_cache()
+                    
                     self.logger.info(f"Operador {operator_id} eliminado")
                     return jsonify({
                         'success': True,
