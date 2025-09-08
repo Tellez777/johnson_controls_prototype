@@ -110,7 +110,7 @@ class JCIProduct:
     # Estado del producto
     status: ProductStatus = ProductStatus.PENDING
     progress_percentage: float = 0.0
-    current_stage: int = 1
+    current_stage: int = field(default=0)  # Se inicializa dinámicamente en __post_init__
     
     # Timestamps
     created_at: datetime = field(default_factory=datetime.now)
@@ -136,6 +136,10 @@ class JCIProduct:
         if not self.stage_executions:
             # Inicializar etapas dinámicas del sistema
             self._initialize_stages()
+        
+        # Inicializar current_stage dinámicamente si no se ha establecido
+        if self.current_stage == 0:
+            self._set_initial_stage()
     
     def _initialize_stages(self):
         """Inicializar las etapas del proceso usando el gestor dinámico"""
@@ -173,6 +177,30 @@ class JCIProduct:
                 operator_id=op_id,
                 operator_name=op_name
             )
+    
+    def _set_initial_stage(self):
+        """Establecer la etapa inicial basada en las etapas activas del sistema"""
+        try:
+            from ..core.stage_manager import global_stage_manager
+            active_stages = global_stage_manager.get_active_stages()
+            
+            if active_stages:
+                # Ordenar por order_position y tomar la primera
+                sorted_stages = sorted(active_stages, key=lambda x: x.get('order_position', 999))
+                self.current_stage = sorted_stages[0]['id']
+            else:
+                # Si no hay etapas activas, usar la primera etapa disponible en stage_executions
+                if self.stage_executions:
+                    self.current_stage = min(self.stage_executions.keys())
+                else:
+                    # Ultimo fallback: usar 20 (consistente con otros fallbacks)
+                    self.current_stage = 20
+        except (ImportError, Exception):
+            # Si el stage_manager no está disponible, usar la primera etapa de stage_executions
+            if self.stage_executions:
+                self.current_stage = min(self.stage_executions.keys())
+            else:
+                self.current_stage = 20  # Fallback consistente
     
     def start_production(self):
         """Iniciar la producción del producto"""

@@ -90,13 +90,13 @@ class ScannerManager:
                 stage_name = sorted_stages[0]['name']
                 self.logger.info(f"TARGET: Etapa inicial sincronizada dinámicamente: {self.current_stage} ({stage_name})")
             else:
-                # Fallback si no hay etapas activas
-                self.current_stage = 1
-                self.logger.warning("WARNING: No hay etapas activas, usando fallback: etapa 1")
+                # Fallback si no hay etapas activas - usar fallback dinámico
+                self.current_stage = 20
+                self.logger.warning("WARNING: No hay etapas activas, usando fallback: etapa 20")
                 
         except Exception as e:
             self.logger.error(f"ERROR: Error inicializando etapa actual: {e}")
-            self.current_stage = 1  # Fallback seguro
+            self.current_stage = 20  # Fallback seguro - usar etapa 20 como antes
     
     def initialize(self) -> bool:
         """Inicializar el sistema completo"""
@@ -167,6 +167,9 @@ class ScannerManager:
                 self.products[product.barcode] = product
             
             self.logger.info(f"Cargados {len(self.products)} productos existentes")
+            
+            # CRÍTICO: Validar y corregir etapas después de cargar productos
+            self._validate_and_fix_product_stages()
             
             # Siempre asegurar que todos los productos de muestra estén disponibles
             self._ensure_all_sample_products()
@@ -641,9 +644,10 @@ class ScannerManager:
             # Resetear a la primera etapa activa disponible
             active_stages = global_stage_manager.get_active_stages()
             if active_stages:
-                product.current_stage = active_stages[0]['id']
+                sorted_stages = sorted(active_stages, key=lambda x: x.get('order_position', 999))
+                product.current_stage = sorted_stages[0]['id']
             else:
-                product.current_stage = 1  # Fallback
+                product.current_stage = 20  # Fallback consistente
                 
             product.started_at = None
             product.completed_at = None
@@ -663,6 +667,105 @@ class ScannerManager:
         else:
             raise ValueError(f"Producto no encontrado: {barcode}")
     
+    def _validate_and_fix_product_stages(self):
+        """Validar y corregir etapas de productos cargados desde archivos"""
+        try:
+            active_stages = global_stage_manager.get_active_stages()
+            if not active_stages:
+                self.logger.warning("No hay etapas activas para validar productos")
+                return
+                
+            active_stage_ids = [stage['id'] for stage in active_stages]
+            sorted_stages = sorted(active_stages, key=lambda x: x.get('order_position', 999))
+            initial_stage_id = sorted_stages[0]['id']
+            
+            fixed_count = 0
+            for barcode, product in self.products.items():
+                old_stage = product.current_stage
+                
+                # Verificar si el producto está en una etapa inválida
+                if product.current_stage not in active_stage_ids:
+                    # Determinar la nueva etapa correcta
+                    if old_stage in [1, 2]:  # Etapas legacy comunes
+                        product.current_stage = initial_stage_id
+                        fixed_count += 1
+                        self.logger.info(f"Producto {barcode}: etapa corregida {old_stage} -> {initial_stage_id}")
+                    else:
+                        # Para otras etapas inválidas, usar la primera etapa activa
+                        product.current_stage = initial_stage_id
+                        fixed_count += 1
+                        self.logger.warning(f"Producto {barcode}: etapa inválida {old_stage} -> {initial_stage_id}")
+                        
+                    # Resetear estado si estaba en etapa legacy
+                    if old_stage in [1, 2]:
+                        product.status = ProductStatus.PENDING
+                        product.progress_percentage = 0.0
+                        product.started_at = None
+                        product.completed_at = None
+                        
+                        # Resetear etapas de ejecución si es necesario
+                        for stage in product.stage_executions.values():
+                            if stage.status.value != "No Iniciado":
+                                stage.status = stage.status.NOT_STARTED
+                                stage.start_time = None
+                                stage.end_time = None
+                                stage.duration_seconds = 0
+                
+                # Sincronizar stage_executions con etapas activas
+                self._sync_product_stage_executions(product, active_stages)
+            
+            if fixed_count > 0:
+                self.logger.info(f"VALIDACIÓN COMPLETADA: {fixed_count} productos corregidos a etapas dinámicas")
+                # Guardar cambios inmediatamente (comentado hasta implementar save_products en DataSyncService)
+                # self._save_products_state()
+            else:
+                self.logger.info("VALIDACIÓN COMPLETADA: Todos los productos tienen etapas válidas")
+                
+        except Exception as e:
+            self.logger.error(f"Error validando etapas de productos: {e}")
+    
+    def _sync_product_stage_executions(self, product: JCIProduct, active_stages: list):
+        """Sincronizar stage_executions de un producto con las etapas activas"""
+        try:
+            # Obtener IDs de etapas activas
+            active_stage_ids = set(stage['id'] for stage in active_stages)
+            current_stage_ids = set(product.stage_executions.keys())
+            
+            # Agregar nuevas etapas que falten
+            for stage_data in active_stages:
+                stage_id = stage_data['id']
+                if stage_id not in product.stage_executions:
+                    from ..models.product import StageExecution
+                    product.stage_executions[stage_id] = StageExecution(
+                        stage_id=stage_id,
+                        stage_name=stage_data['name'],
+                        operator_id=stage_data.get('operator_id', ''),
+                        operator_name=stage_data.get('operator_name', '')
+                    )
+            
+            # Remover etapas que ya no están activas (opcional - comentado para mantener historial)
+            # stages_to_remove = current_stage_ids - active_stage_ids
+            # for stage_id in stages_to_remove:
+            #     del product.stage_executions[stage_id]
+                    
+        except Exception as e:
+            self.logger.error(f"Error sincronizando stage_executions para {product.barcode}: {e}")
+
+    def _save_products_state(self):
+        """Guardar estado actual de productos usando data_sync"""
+        try:
+            # Convertir productos a formato dict para guardar
+            products_to_save = []
+            for product in self.products.values():
+                products_to_save.append(product.to_dict())
+            
+            # Usar el data_sync service para guardar
+            self.data_sync.save_products(products_to_save)
+            self.logger.info(f"Estado de {len(products_to_save)} productos guardado correctamente")
+            
+        except Exception as e:
+            self.logger.error(f"Error guardando estado de productos: {e}")
+
     def fix_orphaned_products(self, target_stage: int = 20):
         """Corregir productos en etapas inexistentes o inválidas"""
         try:
