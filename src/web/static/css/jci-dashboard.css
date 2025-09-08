@@ -415,8 +415,8 @@ body {
 
 .products-scrollable-container {
     flex: 1; /* Usar todo el espacio disponible */
-    max-height: 70vh; /* Usar máximo 70% de la altura de la ventana */
-    min-height: 500px; /* Altura mínima garantizada */
+    max-height: 96vh; /* Usar máximo 70% de la altura de la ventana */
+    min-height: 96vh; /* Altura mínima garantizada */
     overflow-y: auto;
     padding-right: 8px;
     scrollbar-width: thin;

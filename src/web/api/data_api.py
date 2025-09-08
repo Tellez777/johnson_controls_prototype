@@ -993,8 +993,10 @@ class DataAPI:
                     if barcode in state_data['products']:
                         product = state_data['products'][barcode]
                         
-                        # Reiniciar a estado inicial
-                        product['current_stage'] = 1
+                        # Reiniciar a estado inicial - usar primera etapa activa
+                        active_stages = global_stage_manager.get_active_stages()
+                        initial_stage = active_stages[0]['id'] if active_stages else 20
+                        product['current_stage'] = initial_stage
                         product['progress_percentage'] = 0.0
                         product['status'] = 'Pendiente'
                         product['started_at'] = None
@@ -1054,6 +1056,137 @@ class DataAPI:
                     'success': False,
                     'message': 'Error interno del servidor',
                     'error': str(e)
+                }), 500
+        
+        @self.blueprint.route('/products', methods=['POST'])
+        def create_product():
+            """Crear nuevo producto en el sistema"""
+            try:
+                data = request.get_json()
+                if not data:
+                    return jsonify({
+                        'success': False,
+                        'message': 'Datos JSON requeridos'
+                    }), 400
+                
+                # Campos requeridos
+                required_fields = ['barcode', 'product_name']
+                for field in required_fields:
+                    if not data.get(field):
+                        return jsonify({
+                            'success': False,
+                            'message': f'Campo requerido: {field}'
+                        }), 400
+                
+                barcode = data['barcode']
+                
+                # Cargar estado actual
+                state_data = self._load_system_state()
+                if not state_data:
+                    return jsonify({
+                        'success': False,
+                        'message': 'Error cargando datos del sistema'
+                    }), 500
+                
+                # Verificar que el producto no exista ya
+                if 'products' in state_data and barcode in state_data['products']:
+                    return jsonify({
+                        'success': False,
+                        'message': f'El producto {barcode} ya existe'
+                    }), 409
+                
+                # Obtener etapa inicial dinámica (primera etapa activa)
+                active_stages = global_stage_manager.get_active_stages()
+                if not active_stages:
+                    return jsonify({
+                        'success': False,
+                        'message': 'No hay etapas activas configuradas'
+                    }), 500
+                
+                initial_stage = active_stages[0]['id']
+                
+                # Crear estructura del producto
+                new_product = {
+                    'barcode': barcode,
+                    'product_name': data['product_name'],
+                    'batch_number': data.get('batch_number', f'BTH-{barcode[-6:]}'),
+                    'part_number': data.get('part_number', f'PART-{barcode}'),
+                    'serial_number': data.get('serial_number', f'SN{barcode}'),
+                    'work_order': data.get('work_order', f'WO-{datetime.now().strftime("%Y%m%d")}-{barcode[-4:]}'),
+                    'product_family': data.get('product_family', 'Producto Personalizado'),
+                    'customer_code': data.get('customer_code', 'CUSTOM'),
+                    'specification': data.get('specification', f'JCI-SPEC-{barcode}-A'),
+                    'revision': data.get('revision', 'Rev-A'),
+                    'priority': data.get('priority', 'Normal'),
+                    'current_stage': initial_stage,
+                    'status': 'Pendiente',
+                    'progress_percentage': 0.0,
+                    'efficiency_score': 0.0,
+                    'quality_score': 100.0,
+                    'target_cycle_time': data.get('target_cycle_time', 300),
+                    'total_cycle_time': 0,
+                    'created_at': datetime.now().isoformat(),
+                    'started_at': None,
+                    'completed_at': None,
+                    'last_updated': datetime.now().isoformat(),
+                    'notes': data.get('notes', ''),
+                    'tags': data.get('tags', [])
+                }
+                
+                # Crear stage_executions dinámicamente para todas las etapas
+                stages = global_stage_manager.get_active_stages()
+                stage_executions = {}
+                for stage in stages:
+                    stage_executions[str(stage['id'])] = {
+                        'stage_id': stage['id'],
+                        'stage_name': stage['name'],
+                        'operator_name': stage.get('operator_name', ''),
+                        'operator_id': '',
+                        'station_id': '',
+                        'status': 'No Iniciado',
+                        'start_time': None,
+                        'end_time': None,
+                        'duration_seconds': 0,
+                        'quality_score': 100.0,
+                        'defect_count': 0,
+                        'notes': ''
+                    }
+                
+                new_product['stage_executions'] = stage_executions
+                
+                # Agregar el producto al estado
+                if 'products' not in state_data:
+                    state_data['products'] = {}
+                
+                state_data['products'][barcode] = new_product
+                state_data['last_updated'] = datetime.now().isoformat()
+                
+                # Guardar estado actualizado
+                state_file = config.get_json_path('state')
+                with open(state_file, 'w', encoding='utf-8') as f:
+                    json.dump(state_data, f, indent=2, ensure_ascii=False)
+                
+                # También actualizar el archivo Excel si existe
+                self._update_excel_file(new_product)
+                
+                self.logger.info(f"Producto creado exitosamente: {barcode}")
+                
+                return jsonify({
+                    'success': True,
+                    'message': f'Producto {barcode} creado exitosamente',
+                    'product': new_product,
+                    'timestamp': datetime.now().isoformat()
+                })
+                
+            except Exception as e:
+                import traceback
+                self.logger.error(f"Error creando producto: {e}")
+                self.logger.error(f"Traceback completo: {traceback.format_exc()}")
+                return jsonify({
+                    'success': False,
+                    'message': 'Error interno del servidor',
+                    'error': str(e),
+                    'traceback': traceback.format_exc()
                 }), 500
 
         @self.blueprint.route('/health', methods=['GET'])
@@ -2290,3 +2423,49 @@ class DataAPI:
         except Exception as e:
             self.logger.error(f"Error generando operadores desde etapas: {e}")
             return {}
+    
+    def _update_excel_file(self, product: Dict[str, Any]):
+        """Actualizar archivo Excel con nuevo producto (opcional)"""
+        try:
+            # Esta funcionalidad es opcional, se puede implementar posteriormente
+            # si se desea mantener sincronizado el archivo Excel
+            pass
+        except Exception as e:
+            self.logger.warning(f"No se pudo actualizar Excel con producto {product['barcode']}: {e}")
+    
+    def _check_state_file(self) -> bool:
+        """Verificar que el archivo de estado existe"""
+        try:
+            state_file = config.get_json_path('state')
+            return state_file.exists()
+        except Exception:
+            return False
+    
+    def _check_data_freshness(self) -> bool:
+        """Verificar que los datos son recientes"""
+        try:
+            state_data = self._load_system_state()
+            if not state_data:
+                return False
+            freshness = self._calculate_data_freshness(state_data)
+            return freshness['status'] in ['very_fresh', 'fresh', 'acceptable']
+        except Exception:
+            return False
+    
+    def _check_products_loaded(self) -> bool:
+        """Verificar que hay productos cargados"""
+        try:
+            state_data = self._load_system_state()
+            if not state_data:
+                return False
+            return 'products' in state_data and len(state_data['products']) > 0
+        except Exception:
+            return False
+    
+    def _check_excel_file(self) -> bool:
+        """Verificar que el archivo Excel es accesible"""
+        try:
+            excel_file = config.get_excel_path('main')
+            return excel_file.exists()
+        except Exception:
+            return False

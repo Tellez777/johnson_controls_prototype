@@ -5,6 +5,7 @@ WEB APPLICATION - Aplicación web principal (Modularizada)
 Johnson Controls - Sistema de Seguimiento Industrial
 """
 
+import json
 import threading
 import webbrowser
 from datetime import datetime
@@ -112,6 +113,52 @@ class WebApplication:
                 self.logger.error(f"Error renderizando dashboard: {e}")
                 # Fallback a dashboard básico
                 return self._get_fallback_dashboard()
+        
+        @self.app.route('/station')
+        def station():
+            """Página de estación de trabajo"""
+            try:
+                # Obtener parámetros de la URL
+                stage_id = request.args.get('stage', type=int, default=20)
+                
+                # Cargar información de la etapa
+                try:
+                    stages_file = config.get_data_path("json") / "stages_config.json"
+                    if stages_file.exists():
+                        with open(stages_file, 'r', encoding='utf-8') as f:
+                            stages_data = json.load(f)
+                        
+                        # Buscar la etapa específica
+                        current_stage = None
+                        for stage in stages_data.get('stages', []):
+                            if stage['id'] == stage_id:
+                                current_stage = stage
+                                break
+                        
+                        if current_stage:
+                            return render_template('station.html',
+                                station_id=current_stage.get('station_id', f'EST-{stage_id}'),
+                                station_name=f"Estación {current_stage['name']}",
+                                station_description=current_stage.get('description', 'Estación de trabajo industrial'),
+                                operator_name=current_stage.get('operator_name', 'No asignado'),
+                                stage_id=stage_id
+                            )
+                
+                except Exception as e:
+                    self.logger.warning(f"Error cargando datos de etapa {stage_id}: {e}")
+                
+                # Fallback: usar valores por defecto
+                return render_template('station.html',
+                    station_id=f'EST-{stage_id}',
+                    station_name=f"Estación {stage_id}",
+                    station_description="Estación de trabajo industrial",
+                    operator_name="No asignado",
+                    stage_id=stage_id
+                )
+                
+            except Exception as e:
+                self.logger.error(f"Error mostrando página de estación: {e}")
+                return f"Error cargando estación: {e}", 500
         
         @self.app.route('/health')
         def health_check():

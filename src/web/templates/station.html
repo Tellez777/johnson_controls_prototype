@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Johnson Controls - Estación: {{station_name}}</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>JC</text></svg>">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/jci-dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/station.css') }}">
+</head>
+<body class="station-layout">
+    <div class="station-container">
+        <!-- Header de Estación -->
+        <div class="station-header">
+            <div class="header-content">
+                <div class="station-info">
+                    <img src="{{ url_for('static', filename='assets/jci_logo.svg') }}" alt="Johnson Controls" class="jci-logo" onerror="this.style.display='none'">
+                    <div class="station-title">
+                        <h1 id="station-name">{{station_name | default('Estación de Trabajo')}}</h1>
+                        <p class="station-subtitle" id="station-description">{{station_description | default('Sistema de seguimiento industrial')}}</p>
+                    </div>
+                </div>
+                <div class="station-status">
+                    <div class="status-item">
+                        <div class="status-dot status-active" id="station-status-dot"></div>
+                        <span><strong>Estado:</strong> <span id="station-status-text">Operativo</span></span>
+                    </div>
+                    <div class="status-item">
+                        <span><strong>Operador:</strong> <span id="current-operator">{{operator_name | default('No asignado')}}</span></span>
+                    </div>
+                    <div class="status-item">
+                        <span><strong>Turno:</strong> <span id="current-shift">Día</span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPIs de la Estación -->
+        <div class="station-kpis">
+            <div class="kpi-card station-kpi">
+                <div class="kpi-content">
+                    <div class="kpi-value" id="products-in-stage">0</div>
+                    <div class="kpi-label">Productos en Etapa</div>
+                </div>
+            </div>
+            <div class="kpi-card station-kpi">
+                <div class="kpi-content">
+                    <div class="kpi-value" id="products-completed-today">0</div>
+                    <div class="kpi-label">Completados Hoy</div>
+                </div>
+            </div>
+            <div class="kpi-card station-kpi">
+                <div class="kpi-content">
+                    <div class="kpi-value" id="avg-cycle-time">0m</div>
+                    <div class="kpi-label">Tiempo Promedio</div>
+                </div>
+            </div>
+            <div class="kpi-card station-kpi">
+                <div class="kpi-content">
+                    <div class="kpi-value" id="efficiency-rate">0%</div>
+                    <div class="kpi-label">Eficiencia</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <!-- Panel de Escaneo -->
+            <div class="section scan-section">
+                <h2 class="section-title">Centro de Escaneo</h2>
+                <div class="scan-panel">
+                    <div class="scan-input-group">
+                        <input type="text" id="barcode-input" class="scan-input" placeholder="Escanear o ingresar código..." autofocus>
+                        <button class="btn btn-jci scan-btn" onclick="processManualScan()">Procesar</button>
+                    </div>
+                    <div class="scan-status" id="scan-status">
+                        <div class="scan-ready">
+                            <div class="scan-icon">▶</div>
+                            <p>Listo para escanear</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lista de Productos en Esta Etapa -->
+            <div class="section products-section">
+                <div class="section-header-with-controls">
+                    <h2 class="section-title">Productos en Esta Etapa</h2>
+                    <div class="section-controls">
+                        <button class="btn btn-secondary btn-sm" onclick="refreshStationData()">
+                            <span class="refresh-icon"></span> Actualizar
+                        </button>
+                    </div>
+                </div>
+                <div class="products-container" id="station-products-container">
+                    <div class="loading">Cargando productos de la estación...</div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Información del Operador y Instrucciones -->
+        <div class="section info-section">
+            <h2 class="section-title">Información de la Etapa</h2>
+            <div class="info-panel">
+                <div class="info-card">
+                    <h3>Instrucciones de Trabajo</h3>
+                    <div id="work-instructions">
+                        <p id="stage-instructions">Cargando instrucciones...</p>
+                    </div>
+                </div>
+                <div class="info-card">
+                    <h3>Información del Proceso</h3>
+                    <div class="process-info">
+                        <div class="info-item">
+                            <span class="label">Tiempo Objetivo:</span>
+                            <span class="value" id="target-time">-- min</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Umbral de Calidad:</span>
+                            <span class="value" id="quality-threshold">--%</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Tipo de Etapa:</span>
+                            <span class="value" id="stage-type">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Log de Actividades -->
+        <div class="section activity-section">
+            <h2 class="section-title">Registro de Actividad</h2>
+            <div class="activity-log" id="activity-log">
+                <div class="activity-item">
+                    <div class="activity-time">--:--</div>
+                    <div class="activity-text">Sistema iniciado</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Compacto -->
+        <div class="station-footer">
+            <div class="footer-content">
+                <p>Johnson Controls - Estación {{station_id | default('--')}} | <span id="last-update-time">--:--</span></p>
+                <p><a href="{{url_for('dashboard')}}" class="dashboard-link">← Volver al Dashboard Principal</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmación de Escaneo -->
+    <div id="scanConfirmationModal" class="modal scan-modal" style="display: none;">
+        <div class="modal-content scan-modal-content">
+            <div class="modal-header">
+                <h3>Confirmar Escaneo</h3>
+                <span class="close" onclick="closeScanModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="scan-confirmation-info">
+                    <div class="product-info">
+                        <h4>Producto Escaneado</h4>
+                        <p><strong>Código:</strong> <span id="scanned-barcode">--</span></p>
+                        <p><strong>Descripción:</strong> <span id="scanned-description">--</span></p>
+                        <p><strong>Estado Actual:</strong> <span id="scanned-status">--</span></p>
+                    </div>
+                    <div class="scan-action">
+                        <p class="scan-message" id="scan-message">¿Procesar este producto en la etapa actual?</p>
+                        <div class="scan-buttons">
+                            <button class="btn btn-success" onclick="confirmScan()">✓ Confirmar</button>
+                            <button class="btn btn-secondary" onclick="closeScanModal()">✗ Cancelar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/station.js') }}"></script>
+</body>
+</html>

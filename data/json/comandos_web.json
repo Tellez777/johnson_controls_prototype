@@ -1,10 +1,10 @@
 {
-  "timestamp": "2025-09-05T07:37:17.729019",
+  "timestamp": "2025-09-05T09:33:33.614770",
   "comando": "simular_escaneo",
   "parametros": {
-    "codigo": "JCI240003C"
+    "codigo": "fwe24gvfd"
   },
   "procesado": true,
   "source": "web_api",
-  "procesado_timestamp": "2025-09-05T07:37:18.063557"
+  "procesado_timestamp": "2025-09-05T09:33:34.061925"
 }

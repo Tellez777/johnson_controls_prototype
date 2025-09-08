@@ -1,0 +1,488 @@
+/* CSS específico para las páginas de estación */
+/* Reutiliza variables del dashboard principal */
+
+/* Layout específico de estación */
+.station-layout {
+    background: var(--bg-secondary);
+}
+
+.station-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Header de Estación */
+.station-header {
+    background: var(--gradient-header);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow-md);
+    color: white;
+}
+
+.station-header .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.station-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.station-title h1 {
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.station-subtitle {
+    font-size: 14px;
+    margin: 4px 0 0 0;
+    opacity: 0.9;
+}
+
+.station-status {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.station-status .status-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: white;
+}
+
+/* KPIs de Estación */
+.station-kpis {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.kpi-card.station-kpi {
+    background: var(--bg-card);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-light);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: all 0.3s ease;
+}
+
+.kpi-card.station-kpi:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.kpi-icon {
+    font-size: 32px;
+    min-width: 48px;
+    text-align: center;
+}
+
+.kpi-content {
+    flex: 1;
+}
+
+.kpi-content .kpi-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--jci-primary);
+    margin: 0;
+}
+
+.kpi-content .kpi-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 2px 0 0 0;
+    font-weight: 500;
+}
+
+/* Panel de Escaneo */
+.scan-section {
+    background: var(--bg-card);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow-sm);
+    border: 2px solid var(--jci-primary);
+}
+
+.scan-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.scan-input-group {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.scan-input {
+    flex: 1;
+    padding: 16px 20px;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 18px;
+    font-family: 'Courier New', monospace;
+    background: var(--bg-light);
+    transition: border-color 0.3s ease;
+}
+
+.scan-input:focus {
+    outline: none;
+    border-color: var(--jci-primary);
+    box-shadow: 0 0 0 3px rgba(0, 184, 224, 0.1);
+}
+
+.scan-btn {
+    padding: 16px 24px;
+    font-size: 16px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.scan-status {
+    padding: 16px;
+    background: var(--bg-light);
+    border-radius: 8px;
+    border: 1px solid var(--border-light);
+}
+
+.scan-ready {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--text-secondary);
+}
+
+.scan-icon {
+    font-size: 24px;
+}
+
+/* Lista de Productos de la Estación */
+.section-header-with-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.section-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.refresh-icon {
+    display: inline-block;
+    transition: transform 0.3s ease;
+}
+
+.btn:hover .refresh-icon {
+    transform: rotate(180deg);
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.filter-select {
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--bg-card);
+    color: var(--text-primary);
+    font-size: 13px;
+}
+
+.products-container {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    background: var(--bg-card);
+}
+
+/* Tarjetas de productos para estación */
+.product-card.station-product {
+    padding: 16px;
+    border-bottom: 1px solid var(--border-light);
+    transition: background-color 0.2s ease;
+}
+
+.product-card.station-product:hover {
+    background: var(--bg-light);
+}
+
+.product-card.station-product:last-child {
+    border-bottom: none;
+}
+
+.product-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.product-barcode {
+    font-family: 'Courier New', monospace;
+    font-weight: 700;
+    color: var(--jci-primary);
+    font-size: 16px;
+}
+
+.product-priority {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.product-priority.alta {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.product-priority.normal {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.product-priority.baja {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.product-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+/* Panel de Información */
+.info-panel {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+}
+
+.info-card {
+    background: var(--bg-card);
+    border-radius: 8px;
+    padding: 20px;
+    border: 1px solid var(--border-light);
+}
+
+.info-card h3 {
+    margin: 0 0 12px 0;
+    color: var(--text-primary);
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.process-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.info-item .label {
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+.info-item .value {
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 13px;
+}
+
+/* Log de Actividades */
+.activity-log {
+    max-height: 200px;
+    overflow-y: auto;
+    background: var(--bg-card);
+    border-radius: 8px;
+    border: 1px solid var(--border-light);
+}
+
+.activity-item {
+    display: flex;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-light);
+    font-size: 13px;
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-time {
+    color: var(--text-muted);
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    min-width: 60px;
+}
+
+.activity-text {
+    color: var(--text-secondary);
+    flex: 1;
+}
+
+/* Footer de Estación */
+.station-footer {
+    margin-top: 32px;
+    padding: 16px 0;
+    border-top: 1px solid var(--border-light);
+    text-align: center;
+}
+
+.footer-content p {
+    margin: 4px 0;
+    color: var(--text-muted);
+    font-size: 12px;
+}
+
+.dashboard-link {
+    color: var(--jci-primary);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.dashboard-link:hover {
+    text-decoration: underline;
+}
+
+/* Modal de Confirmación de Escaneo */
+.scan-modal .modal-content {
+    max-width: 500px;
+}
+
+.scan-modal-content .modal-header {
+    background: var(--jci-primary);
+    color: white;
+    border-radius: 8px 8px 0 0;
+}
+
+.scan-confirmation-info {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.product-info h4 {
+    margin: 0 0 12px 0;
+    color: var(--text-primary);
+    font-size: 16px;
+}
+
+.product-info p {
+    margin: 6px 0;
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.scan-message {
+    font-size: 16px;
+    color: var(--text-primary);
+    text-align: center;
+    margin: 0 0 16px 0;
+}
+
+.scan-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.scan-buttons .btn {
+    min-width: 120px;
+    font-weight: 600;
+}
+
+/* Estados de escaneo */
+.scan-status.scanning {
+    background: var(--status-info);
+    color: white;
+}
+
+.scan-status.success {
+    background: var(--status-success);
+    color: white;
+}
+
+.scan-status.error {
+    background: var(--status-error);
+    color: white;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .station-container {
+        padding: 12px;
+    }
+    
+    .station-header .header-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+    
+    .station-kpis {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 12px;
+    }
+    
+    .scan-input-group {
+        flex-direction: column;
+    }
+    
+    .scan-input {
+        width: 100%;
+    }
+    
+    .info-panel {
+        grid-template-columns: 1fr;
+    }
+    
+    .section-header-with-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .section-controls {
+        justify-content: space-between;
+    }
+}

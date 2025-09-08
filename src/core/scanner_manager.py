@@ -566,6 +566,10 @@ class ScannerManager:
                 if barcode:
                     self.reset_product(barcode)
             
+            elif command_type == 'fix_orphaned_products':
+                target_stage = parameters.get('target_stage', 20)
+                self.fix_orphaned_products(target_stage)
+            
             else:
                 self.logger.warning(f"Comando desconocido: {command_type}")
             
@@ -658,6 +662,51 @@ class ScannerManager:
             self.logger.info(f"Producto reseteado: {barcode}")
         else:
             raise ValueError(f"Producto no encontrado: {barcode}")
+    
+    def fix_orphaned_products(self, target_stage: int = 20):
+        """Corregir productos en etapas inexistentes o inválidas"""
+        try:
+            active_stages = global_stage_manager.get_active_stages()
+            active_stage_ids = [stage['id'] for stage in active_stages]
+            
+            fixed_count = 0
+            for barcode, product in self.products.items():
+                # Verificar si el producto está en una etapa inválida
+                if product.current_stage not in active_stage_ids:
+                    old_stage = product.current_stage
+                    product.current_stage = target_stage
+                    
+                    # Resetear estado si está en etapa 1 (inexistente)
+                    if old_stage == 1:
+                        product.status = ProductStatus.PENDING
+                        product.progress_percentage = 0.0
+                        product.started_at = None
+                        product.completed_at = None
+                        
+                        # Resetear todas las etapas
+                        for stage in product.stage_executions.values():
+                            stage.status = stage.status.NOT_STARTED
+                            stage.start_time = None
+                            stage.end_time = None
+                            stage.duration_seconds = 0
+                    
+                    # Sincronizar etapas con la configuración actual
+                    product.synchronize_stages()
+                    
+                    self.data_sync.sync_product(product)
+                    fixed_count += 1
+                    
+                    self.logger.info(f"Producto {barcode} movido de etapa {old_stage} a etapa {target_stage}")
+            
+            if fixed_count > 0:
+                self.logger.info(f"ORPHANED_PRODUCTS_FIX: Corregidos {fixed_count} productos huérfanos")
+                # Sincronizar estado completo del sistema
+                self.sync_system_state()
+            else:
+                self.logger.info("ORPHANED_PRODUCTS_FIX: No se encontraron productos huérfanos")
+                
+        except Exception as e:
+            self.logger.error(f"Error corrigiendo productos huérfanos: {e}")
     
     def sync_system_state(self):
         """Sincronizar estado completo del sistema"""

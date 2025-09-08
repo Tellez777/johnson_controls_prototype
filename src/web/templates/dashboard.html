@@ -47,9 +47,6 @@
                 <span><strong>Escáner:</strong> <span id="scanner-status-text">Conectado</span></span>
             </div>
             <div class="status-item">
-                <span><strong>Etapa Activa:</strong> <span id="current-stage">Cargando...</span></span>
-            </div>
-            <div class="status-item">
                 <span><strong>Actualizado:</strong> <span id="last-update">--:--</span></span>
             </div>
         </div>
@@ -176,50 +173,51 @@
                 </div>
             </div>
             
-            <!-- Gestión de Turnos y Personal -->
-            <div class="section management-section">
-                <div class="section-header">
-                    <h2 class="section-title">Gestión de Personal y Configuración</h2>
-                    <button class="btn btn-toggle" id="toggle-management" onclick="toggleManagement()">
-                        <span id="management-toggle-text">Mostrar Gestión</span>
-                        <span class="toggle-icon" id="management-toggle-icon">▼</span>
-                    </button>
+        </div>
+
+        <!-- Gestión de Turnos y Personal -->
+        <div class="section management-section">
+            <div class="section-header">
+                <h2 class="section-title">Gestión de Personal y Configuración</h2>
+                <button class="btn btn-toggle" id="toggle-management" onclick="toggleManagement()">
+                    <span id="management-toggle-text">Mostrar Gestión</span>
+                    <span class="toggle-icon" id="management-toggle-icon">▼</span>
+                </button>
+            </div>
+            
+            <div class="management-content" id="management-content" style="display: none;">
+                <div class="management-grid">
+                <div class="management-card">
+                    <h3>Turnos</h3>
+                    <div class="current-shift">
+                        <strong>Turno Actual:</strong> <span id="current-shift-display">Día</span>
+                    </div>
+                    <div class="shift-controls">
+                        <button class="btn btn-sm btn-secondary" onclick="changeShift('Día')">Día</button>
+                        <button class="btn btn-sm btn-secondary" onclick="changeShift('Tarde')">Tarde</button>
+                        <button class="btn btn-sm btn-secondary" onclick="changeShift('Noche')">Noche</button>
+                    </div>
+                    <button class="btn btn-sm btn-primary" onclick="editShiftSchedule()">Editar Horarios</button>
                 </div>
                 
-                <div class="management-content" id="management-content" style="display: none;">
-                    <div class="management-grid">
-                    <div class="management-card">
-                        <h3>Turnos</h3>
-                        <div class="current-shift">
-                            <strong>Turno Actual:</strong> <span id="current-shift-display">Día</span>
-                        </div>
-                        <div class="shift-controls">
-                            <button class="btn btn-sm btn-secondary" onclick="changeShift('Día')">Día</button>
-                            <button class="btn btn-sm btn-secondary" onclick="changeShift('Tarde')">Tarde</button>
-                            <button class="btn btn-sm btn-secondary" onclick="changeShift('Noche')">Noche</button>
-                        </div>
-                        <button class="btn btn-sm btn-primary" onclick="editShiftSchedule()">Editar Horarios</button>
+                <div class="management-card">
+                    <h3>Operadores</h3>
+                    <div id="operators-list">
+                        <!-- Se llenará dinámicamente -->
                     </div>
-                    
-                    <div class="management-card">
-                        <h3>Operadores</h3>
-                        <div id="operators-list">
-                            <!-- Se llenará dinámicamente -->
-                        </div>
-                        <button class="btn btn-sm btn-success" onclick="addOperator()">Agregar Operador</button>
-                        <button class="btn btn-sm btn-warning" onclick="editOperators()">Editar Existentes</button>
-                    </div>
-                    
-                    <div class="management-card">
-                        <h3>Etapas</h3>
-                        <div id="stages-list">
-                            <!-- Se llenará dinámicamente -->
-                        </div>
-                        <button class="btn btn-sm btn-success" onclick="addStage()">Agregar Etapa</button>
-                        <button class="btn btn-sm btn-warning" onclick="editStages()">Editar Existentes</button>
-                    </div>
+                    <button class="btn btn-sm btn-success" onclick="addOperator()">Agregar Operador</button>
+                    <button class="btn btn-sm btn-warning" onclick="editOperators()">Editar Existentes</button>
                 </div>
+                
+                <div class="management-card">
+                    <h3>Etapas</h3>
+                    <div id="stages-list">
+                        <!-- Se llenará dinámicamente -->
+                    </div>
+                    <button class="btn btn-sm btn-success" onclick="addStage()">Agregar Etapa</button>
+                    <button class="btn btn-sm btn-warning" onclick="editStages()">Editar Existentes</button>
                 </div>
+            </div>
             </div>
         </div>
         

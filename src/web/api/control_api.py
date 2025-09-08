@@ -363,6 +363,36 @@ class ControlAPI:
                     'success': False,
                     'message': 'Error interno del servidor'
                 }), 500
+        
+        @self.blueprint.route('/fix_orphaned_products', methods=['POST'])
+        def fix_orphaned_products():
+            """Corregir productos en etapas inexistentes"""
+            try:
+                # Enviar comando para corregir productos huérfanos
+                success = self._send_scanner_command('fix_orphaned_products', {
+                    'target_stage': 20
+                })
+                
+                if success:
+                    self.logger.info("Comando de corrección de productos huérfanos enviado")
+                    return jsonify({
+                        'success': True,
+                        'message': 'Corrección de productos iniciada - productos en etapas inexistentes serán movidos a la etapa inicial',
+                        'target_stage': 20,
+                        'timestamp': datetime.now().isoformat()
+                    })
+                else:
+                    return jsonify({
+                        'success': False,
+                        'message': 'Error enviando comando de corrección'
+                    }), 500
+                
+            except Exception as e:
+                self.logger.error(f"Error en fix_orphaned_products: {e}")
+                return jsonify({
+                    'success': False,
+                    'message': 'Error interno del servidor'
+                }), 500
     
     def _send_scanner_command(self, command: str, parameters: Dict[str, Any]) -> bool:
         """Enviar comando al scanner core"""
