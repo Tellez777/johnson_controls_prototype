@@ -207,75 +207,26 @@ class DataAPI:
         
         @self.blueprint.route('/export/excel', methods=['GET'])
         def export_excel():
-            """Exportar datos a Excel"""
+            """Exportar el archivo DATOS_JCI_PROYECTO.xlsx"""
             try:
-                import pandas as pd
                 from flask import send_file
-                import io
                 from pathlib import Path
+                import os
                 
-                state_data = self._load_system_state()
-                if not state_data:
+                # Ruta al archivo DATOS_JCI_PROYECTO.xlsx
+                excel_path = Path(__file__).parent.parent.parent.parent / 'data' / 'excel' / 'DATOS_JCI_PROYECTO.xlsx'
+                
+                # Verificar que el archivo existe
+                if not excel_path.exists():
                     return jsonify({
-                        'error': 'No hay datos para exportar'
-                    }), 503
-                
-                products = state_data.get('products', {})
-                
-                if not products:
-                    return jsonify({
-                        'error': 'No hay productos para exportar'
+                        'error': 'El archivo DATOS_JCI_PROYECTO.xlsx no existe'
                     }), 404
                 
-                # Generar datos para Excel
-                export_data = []
-                for barcode, product in products.items():
-                    export_data.append({
-                        'Codigo': barcode,
-                        'Producto': product.get('product_name', ''),
-                        'Tipo': product.get('product_type', ''),
-                        'Estado': product.get('status', ''),
-                        'Etapa_Actual': product.get('current_stage_name', ''),
-                        'Progreso_%': product.get('progress_percentage', 0),
-                        'Calidad_%': product.get('quality_score', 0),
-                        'Operador_Actual': product.get('operator_current', ''),
-                        'Fecha_Actualizacion': product.get('updated_at', '')
-                    })
-                
-                # Crear DataFrame de pandas
-                df = pd.DataFrame(export_data)
-                
-                # Crear archivo Excel en memoria
-                excel_buffer = io.BytesIO()
-                with pd.ExcelWriter(excel_buffer, engine='openpyxl', mode='w') as writer:
-                    df.to_excel(writer, sheet_name='Productos_JCI', index=False)
-                    
-                    # Formatear el Excel
-                    worksheet = writer.sheets['Productos_JCI']
-                    
-                    # Ajustar ancho de columnas
-                    for column in worksheet.columns:
-                        max_length = 0
-                        column_letter = column[0].column_letter
-                        for cell in column:
-                            try:
-                                if len(str(cell.value)) > max_length:
-                                    max_length = len(str(cell.value))
-                            except:
-                                pass
-                        adjusted_width = min(max_length + 2, 50)
-                        worksheet.column_dimensions[column_letter].width = adjusted_width
-                
-                excel_buffer.seek(0)
-                
-                # Generar nombre de archivo con timestamp
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                filename = f"JCI_Productos_Export_{timestamp}.xlsx"
-                
+                # Enviar el archivo para descargar
                 return send_file(
-                    excel_buffer,
+                    str(excel_path),
                     as_attachment=True,
-                    download_name=filename,
+                    download_name='DATOS_JCI_PROYECTO.xlsx',
                     mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
                 )
                 
@@ -333,6 +284,9 @@ class DataAPI:
                         'message': 'No se seleccionó ningún archivo'
                     }), 400
                 
+                # Obtener modo de importación (add o update)
+                import_mode = request.form.get('mode', 'add')  # Por defecto agregar
+                
                 # Validar extensión
                 allowed_extensions = {'.xlsx', '.csv', '.xls'}
                 file_ext = os.path.splitext(file.filename)[1].lower()
@@ -363,13 +317,15 @@ class DataAPI:
                                 'message': f'Columnas faltantes: {", ".join(missing_columns)}'
                             }), 400
                         
-                        # Procesar y actualizar datos
-                        updated_count = self._process_uploaded_data(df)
+                        # Procesar y actualizar datos según el modo
+                        processed_count = self._process_uploaded_data(df, import_mode)
                         
+                        mode_text = 'agregados' if import_mode == 'add' else 'actualizados completamente'
                         return jsonify({
                             'success': True,
-                            'message': f'Archivo procesado correctamente. {updated_count} productos actualizados.',
-                            'products_updated': updated_count
+                            'message': f'Archivo procesado correctamente. {processed_count} productos {mode_text}.',
+                            'processed_count': processed_count,
+                            'mode': import_mode
                         })
                         
                     except Exception as e:
@@ -382,6 +338,114 @@ class DataAPI:
                         
             except Exception as e:
                 self.logger.error(f"Error en upload_data: {e}")
+                return jsonify({
+                    'success': False,
+                    'message': f'Error interno: {str(e)}'
+                }), 500
+        
+        @self.blueprint.route('/create-product', methods=['POST'])
+        def create_product():
+            """Crear un nuevo producto desde la UI"""
+            try:
+                from flask import request
+                
+                data = request.get_json()
+                if not data:
+                    return jsonify({
+                        'success': False,
+                        'message': 'No se recibieron datos'
+                    }), 400
+                
+                # Validar datos requeridos
+                required_fields = ['barcode', 'product_name', 'product_type']
+                for field in required_fields:
+                    if not data.get(field, '').strip():
+                        return jsonify({
+                            'success': False,
+                            'message': f'Campo requerido faltante: {field}'
+                        }), 400
+                
+                barcode = data['barcode'].strip()
+                product_name = data['product_name'].strip()
+                product_type = data['product_type'].strip()
+                
+                # Cargar estado del sistema
+                state_data = self._load_system_state()
+                if not state_data:
+                    state_data = {'products': {}}
+                
+                # Verificar si el código de barras ya existe
+                if barcode in state_data.get('products', {}):
+                    return jsonify({
+                        'success': False,
+                        'message': f'El código de barras "{barcode}" ya existe en el sistema'
+                    }), 400
+                
+                # Obtener la primera etapa activa para inicialización
+                try:
+                    from ...core.stage_manager import global_stage_manager
+                    active_stages = global_stage_manager.get_active_stages()
+                    
+                    if not active_stages:
+                        return jsonify({
+                            'success': False,
+                            'message': 'No hay etapas activas en el sistema para crear el producto'
+                        }), 400
+                    
+                    # Ordenar por order_position y tomar la primera
+                    sorted_stages = sorted(active_stages, key=lambda x: x.get('order_position', 999))
+                    initial_stage = sorted_stages[0]['id']
+                    
+                except Exception as e:
+                    self.logger.error(f"Error obteniendo etapas activas: {e}")
+                    initial_stage = 20  # Fallback
+                
+                # Crear nuevo producto
+                product_data = {
+                    'barcode': barcode,
+                    'product_name': product_name,
+                    'product_type': product_type,
+                    'status': 'En Proceso',
+                    'current_stage': initial_stage,
+                    'current_stage_name': f'Etapa {initial_stage}',
+                    'progress_percentage': 0.0,
+                    'quality_score': 95.0,
+                    'operator_current': '',
+                    'created_at': datetime.now().isoformat(),
+                    'updated_at': datetime.now().isoformat(),
+                    'stages_completed': [],
+                    'total_cycle_time': 0
+                }
+                
+                # Agregar producto al estado
+                state_data['products'][barcode] = product_data
+                state_data['timestamp'] = datetime.now().isoformat()
+                state_data['last_sync'] = datetime.now().isoformat()
+                
+                # Guardar cambios
+                self._save_system_state(state_data)
+                
+                # También actualizar el archivo Excel
+                try:
+                    self._update_excel_file(product_data)
+                except Exception as excel_error:
+                    self.logger.warning(f"Producto creado pero error actualizando Excel: {excel_error}")
+                
+                self.logger.info(f"Producto creado exitosamente: {barcode} - {product_name}")
+                
+                return jsonify({
+                    'success': True,
+                    'message': f'Producto "{product_name}" creado correctamente en etapa {initial_stage}',
+                    'product': {
+                        'barcode': barcode,
+                        'name': product_name,
+                        'type': product_type,
+                        'stage': initial_stage
+                    }
+                })
+                
+            except Exception as e:
+                self.logger.error(f"Error creando producto: {e}")
                 return jsonify({
                     'success': False,
                     'message': f'Error interno: {str(e)}'
@@ -1058,136 +1122,6 @@ class DataAPI:
                     'error': str(e)
                 }), 500
         
-        @self.blueprint.route('/products', methods=['POST'])
-        def create_product():
-            """Crear nuevo producto en el sistema"""
-            try:
-                data = request.get_json()
-                if not data:
-                    return jsonify({
-                        'success': False,
-                        'message': 'Datos JSON requeridos'
-                    }), 400
-                
-                # Campos requeridos
-                required_fields = ['barcode', 'product_name']
-                for field in required_fields:
-                    if not data.get(field):
-                        return jsonify({
-                            'success': False,
-                            'message': f'Campo requerido: {field}'
-                        }), 400
-                
-                barcode = data['barcode']
-                
-                # Cargar estado actual
-                state_data = self._load_system_state()
-                if not state_data:
-                    return jsonify({
-                        'success': False,
-                        'message': 'Error cargando datos del sistema'
-                    }), 500
-                
-                # Verificar que el producto no exista ya
-                if 'products' in state_data and barcode in state_data['products']:
-                    return jsonify({
-                        'success': False,
-                        'message': f'El producto {barcode} ya existe'
-                    }), 409
-                
-                # Obtener etapa inicial dinámica (primera etapa activa)
-                active_stages = global_stage_manager.get_active_stages()
-                if not active_stages:
-                    return jsonify({
-                        'success': False,
-                        'message': 'No hay etapas activas configuradas'
-                    }), 500
-                
-                initial_stage = active_stages[0]['id']
-                
-                # Crear estructura del producto
-                new_product = {
-                    'barcode': barcode,
-                    'product_name': data['product_name'],
-                    'batch_number': data.get('batch_number', f'BTH-{barcode[-6:]}'),
-                    'part_number': data.get('part_number', f'PART-{barcode}'),
-                    'serial_number': data.get('serial_number', f'SN{barcode}'),
-                    'work_order': data.get('work_order', f'WO-{datetime.now().strftime("%Y%m%d")}-{barcode[-4:]}'),
-                    'product_family': data.get('product_family', 'Producto Personalizado'),
-                    'customer_code': data.get('customer_code', 'CUSTOM'),
-                    'specification': data.get('specification', f'JCI-SPEC-{barcode}-A'),
-                    'revision': data.get('revision', 'Rev-A'),
-                    'priority': data.get('priority', 'Normal'),
-                    'current_stage': initial_stage,
-                    'status': 'Pendiente',
-                    'progress_percentage': 0.0,
-                    'efficiency_score': 0.0,
-                    'quality_score': 100.0,
-                    'target_cycle_time': data.get('target_cycle_time', 300),
-                    'total_cycle_time': 0,
-                    'created_at': datetime.now().isoformat(),
-                    'started_at': None,
-                    'completed_at': None,
-                    'last_updated': datetime.now().isoformat(),
-                    'notes': data.get('notes', ''),
-                    'tags': data.get('tags', [])
-                }
-                
-                # Crear stage_executions dinámicamente para todas las etapas
-                stages = global_stage_manager.get_active_stages()
-                stage_executions = {}
-                for stage in stages:
-                    stage_executions[str(stage['id'])] = {
-                        'stage_id': stage['id'],
-                        'stage_name': stage['name'],
-                        'operator_name': stage.get('operator_name', ''),
-                        'operator_id': '',
-                        'station_id': '',
-                        'status': 'No Iniciado',
-                        'start_time': None,
-                        'end_time': None,
-                        'duration_seconds': 0,
-                        'quality_score': 100.0,
-                        'defect_count': 0,
-                        'notes': ''
-                    }
-                
-                new_product['stage_executions'] = stage_executions
-                
-                # Agregar el producto al estado
-                if 'products' not in state_data:
-                    state_data['products'] = {}
-                
-                state_data['products'][barcode] = new_product
-                state_data['last_updated'] = datetime.now().isoformat()
-                
-                # Guardar estado actualizado
-                state_file = config.get_json_path('state')
-                with open(state_file, 'w', encoding='utf-8') as f:
-                    json.dump(state_data, f, indent=2, ensure_ascii=False)
-                
-                # También actualizar el archivo Excel si existe
-                self._update_excel_file(new_product)
-                
-                self.logger.info(f"Producto creado exitosamente: {barcode}")
-                
-                return jsonify({
-                    'success': True,
-                    'message': f'Producto {barcode} creado exitosamente',
-                    'product': new_product,
-                    'timestamp': datetime.now().isoformat()
-                })
-                
-            except Exception as e:
-                import traceback
-                self.logger.error(f"Error creando producto: {e}")
-                self.logger.error(f"Traceback completo: {traceback.format_exc()}")
-                return jsonify({
-                    'success': False,
-                    'message': 'Error interno del servidor',
-                    'error': str(e),
-                    'traceback': traceback.format_exc()
-                }), 500
 
         @self.blueprint.route('/health', methods=['GET'])
         def data_health():
@@ -2184,14 +2118,19 @@ class DataAPI:
             self.logger.debug(f"No se pudo obtener estado real del sistema: {e}")
             return False
     
-    def _process_uploaded_data(self, df) -> int:
+    def _process_uploaded_data(self, df, import_mode='add') -> int:
         """Procesar datos subidos desde Excel/CSV"""
         try:
             state_data = self._load_system_state()
             if not state_data:
                 state_data = {'products': {}}
             
-            updated_count = 0
+            # Si el modo es 'update', limpiar productos existentes
+            if import_mode == 'update':
+                state_data['products'] = {}
+                self.logger.info("Modo actualización completa: productos existentes eliminados")
+            
+            processed_count = 0
             
             for _, row in df.iterrows():
                 barcode = str(row['barcode']).strip()
@@ -2224,7 +2163,7 @@ class DataAPI:
                     product_data['total_cycle_time'] = existing.get('total_cycle_time', 0)
                 
                 state_data['products'][barcode] = product_data
-                updated_count += 1
+                processed_count += 1
             
             # Actualizar estadísticas
             state_data['timestamp'] = datetime.now().isoformat()
@@ -2233,7 +2172,7 @@ class DataAPI:
             # Guardar cambios
             self._save_system_state(state_data)
             
-            return updated_count
+            return processed_count
             
         except Exception as e:
             self.logger.error(f"Error procesando datos subidos: {e}")
@@ -2425,13 +2364,53 @@ class DataAPI:
             return {}
     
     def _update_excel_file(self, product: Dict[str, Any]):
-        """Actualizar archivo Excel con nuevo producto (opcional)"""
+        """Actualizar archivo Excel con nuevo producto"""
         try:
-            # Esta funcionalidad es opcional, se puede implementar posteriormente
-            # si se desea mantener sincronizado el archivo Excel
-            pass
+            import openpyxl
+            from pathlib import Path
+            
+            # Ruta al archivo Excel principal
+            excel_path = Path(__file__).parent.parent.parent.parent / 'data' / 'excel' / 'DATOS_JCI_PROYECTO.xlsx'
+            
+            if not excel_path.exists():
+                self.logger.warning(f"Archivo Excel no encontrado: {excel_path}")
+                return
+            
+            # Cargar el workbook existente
+            wb = openpyxl.load_workbook(excel_path)
+            ws = wb.active
+            
+            # Verificar si el producto ya existe
+            product_row = None
+            for row in range(2, ws.max_row + 1):
+                if ws.cell(row, 1).value == product.get('barcode'):
+                    product_row = row
+                    break
+            
+            # Si no existe, agregarlo al final
+            if product_row is None:
+                product_row = ws.max_row + 1
+            
+            # Escribir los datos del producto en Excel
+            ws.cell(product_row, 1, product.get('barcode'))  # Código
+            ws.cell(product_row, 2, product.get('product_name'))  # Nombre
+            ws.cell(product_row, 3, product.get('product_type'))  # Tipo
+            ws.cell(product_row, 4, product.get('status', 'En Proceso'))  # Estado
+            ws.cell(product_row, 5, product.get('current_stage'))  # Etapa actual
+            ws.cell(product_row, 6, product.get('progress_percentage', 0.0))  # Progreso
+            ws.cell(product_row, 7, product.get('quality_score', 95.0))  # Calidad
+            ws.cell(product_row, 8, product.get('operator_current', ''))  # Operador
+            ws.cell(product_row, 9, product.get('created_at', ''))  # Fecha creación
+            ws.cell(product_row, 10, product.get('updated_at', ''))  # Fecha actualización
+            
+            # Guardar cambios
+            wb.save(excel_path)
+            wb.close()
+            
+            self.logger.info(f"Producto {product['barcode']} agregado/actualizado en Excel")
+            
         except Exception as e:
-            self.logger.warning(f"No se pudo actualizar Excel con producto {product['barcode']}: {e}")
+            self.logger.warning(f"No se pudo actualizar Excel con producto {product.get('barcode', 'desconocido')}: {e}")
     
     def _check_state_file(self) -> bool:
         """Verificar que el archivo de estado existe"""

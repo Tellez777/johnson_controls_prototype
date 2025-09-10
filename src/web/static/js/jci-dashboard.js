@@ -1224,14 +1224,135 @@ class JCIDashboard {
     
     // ===== FUNCIONES DE GESTIÓN DE DATOS =====
     
+    showImportModeModal() {
+        console.log('Dashboard.showImportModeModal() called');
+        const modal = this.createModal('Seleccionar Modo de Importación', `
+            <div class="import-mode-selection">
+                <div class="mode-options">
+                    <h4>¿Cómo deseas importar los datos?</h4>
+                    
+                    <div class="option-card" onclick="dashboard.selectImportMode('add', this.closest('.modal'))">
+                        <div class="option-header">
+                            <h5>➕ Agregar Productos</h5>
+                        </div>
+                        <div class="option-description">
+                            <p>Mantener todos los productos existentes y agregar los nuevos del archivo.</p>
+                            <ul>
+                                <li>✅ Conserva datos actuales</li>
+                                <li>✅ Solo agrega productos nuevos</li>
+                                <li>⚠️ Productos duplicados se actualizarán</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="option-card danger" onclick="dashboard.selectImportMode('update', this.closest('.modal'))">
+                        <div class="option-header">
+                            <h5>🔄 Reemplazar Todo</h5>
+                        </div>
+                        <div class="option-description">
+                            <p>Eliminar todos los productos actuales y reemplazar con los del archivo.</p>
+                            <ul>
+                                <li>⚠️ ELIMINA todos los datos actuales</li>
+                                <li>⚠️ Esta acción NO se puede deshacer</li>
+                                <li>✅ Sistema queda con solo los datos del archivo</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">Cancelar</button>
+                </div>
+            </div>
+        `);
+        document.body.appendChild(modal);
+    }
+    
+    selectImportMode(mode, modal) {
+        modal.remove();
+        this.selectedImportMode = mode;
+        
+        // Abrir selector de archivo
+        document.getElementById('fileUpload').click();
+    }
+
     handleFileUpload(event) {
         const file = event.target.files[0];
         if (!file) return;
         
-        const formData = new FormData();
-        formData.append('file', file);
+        // Usar el modo seleccionado previamente
+        const importMode = this.selectedImportMode || 'add';
         
-        this.showNotification('Subiendo archivo...', 'info');
+        // Mostrar modal de confirmación con el archivo
+        this.showImportConfirmationModal(file, importMode);
+        
+        // Limpiar input y modo seleccionado
+        event.target.value = '';
+        this.selectedImportMode = null;
+    }
+    
+    showImportConfirmationModal(file, importMode) {
+        const modal = this.createModal('Opciones de Importación', `
+            <div class="import-options">
+                <div class="file-info">
+                    <h4>Archivo seleccionado:</h4>
+                    <p><strong>${file.name}</strong> (${(file.size / 1024).toFixed(1)} KB)</p>
+                </div>
+                
+                <div class="import-warning">
+                    <div class="alert alert-warning">
+                        <strong>⚠️ Advertencia:</strong> Esta operación modificará los datos del sistema.
+                    </div>
+                </div>
+                
+                <div class="import-mode-selected">
+                    <h4>Modo seleccionado:</h4>
+                    <div class="selected-mode ${importMode === 'update' ? 'danger' : 'success'}">
+                        ${importMode === 'add' ? '➕ Agregar productos a los existentes' : '🔄 Reemplazar todos los productos'}
+                    </div>
+                </div>
+                
+                <div class="dynamic-stage-info">
+                    <div class="alert alert-info">
+                        <strong>ℹ️ Información:</strong> Los productos se inicializarán en la primera etapa activa del sistema (dinámico).
+                    </div>
+                </div>
+                
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">Cancelar</button>
+                    <button class="btn btn-primary" onclick="dashboard.processFileUpload('${file.name}', '${importMode}', this.closest('.modal'))">Procesar Archivo</button>
+                </div>
+            </div>
+        `);
+        
+        // Almacenar el archivo para procesamiento posterior
+        this.pendingFile = file;
+    }
+    
+    processFileUpload(fileName, selectedMode, modal) {
+        
+        if (!this.pendingFile) {
+            this.showNotification('Error: Archivo no encontrado', 'error');
+            modal.remove();
+            return;
+        }
+        
+        // Mostrar confirmación final
+        const confirmMessage = selectedMode === 'add' 
+            ? '¿Confirmas que deseas AGREGAR los productos del archivo a los existentes?'
+            : '¿Confirmas que deseas REEMPLAZAR COMPLETAMENTE todos los productos con los del archivo?';
+            
+        if (!confirm(confirmMessage)) {
+            modal.remove();
+            return;
+        }
+        
+        const formData = new FormData();
+        formData.append('file', this.pendingFile);
+        formData.append('mode', selectedMode);
+        
+        this.showNotification('Procesando archivo...', 'info');
+        modal.remove();
         
         fetch('/api/data/upload', {
             method: 'POST',
@@ -1240,7 +1361,132 @@ class JCIDashboard {
         .then(response => response.json())
         .then(result => {
             if (result.success) {
-                this.showNotification('Archivo subido correctamente', 'success');
+                const modeText = selectedMode === 'add' ? 'agregados' : 'actualizados';
+                this.showNotification(`Productos ${modeText} correctamente: ${result.processed_count}`, 'success');
+                setTimeout(() => this.loadData(), 1000);
+            } else {
+                this.showNotification('Error: ' + result.message, 'error');
+            }
+        })
+        .catch(error => {
+            this.showNotification('Error de conexión: ' + error.message, 'error');
+        })
+        .finally(() => {
+            this.pendingFile = null;
+        });
+    }
+    
+    showCreateProductModal() {
+        console.log('Dashboard.showCreateProductModal() called');
+        const modal = this.createModal('Crear Nuevo Producto', `
+            <div class="create-product-form">
+                <form id="createProductForm">
+                    <div class="form-group">
+                        <label for="newProductBarcode">Código de Barras *</label>
+                        <input type="text" id="newProductBarcode" class="form-control" required 
+                               placeholder="Ej: ABC123XYZ" maxlength="50">
+                        <small class="form-text text-muted">El código debe ser único en el sistema</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="newProductName">Nombre del Producto *</label>
+                        <input type="text" id="newProductName" class="form-control" required 
+                               placeholder="Ej: Controlador HVAC Premium" maxlength="100">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="newProductType">Tipo de Producto *</label>
+                        <select id="newProductType" class="form-control" required>
+                            <option value="">Selecciona un tipo...</option>
+                            <option value="HVAC_CONTROLLER">Controlador HVAC</option>
+                            <option value="BATTERY_SYSTEM">Sistema de Batería</option>
+                            <option value="IOT_SWITCH">Switch IoT</option>
+                            <option value="SENSOR_MODULE">Módulo Sensor</option>
+                            <option value="DISPLAY_UNIT">Unidad de Display</option>
+                            <option value="POWER_SUPPLY">Fuente de Poder</option>
+                            <option value="OTHER">Otro</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" id="customTypeGroup" style="display: none;">
+                        <label for="customProductType">Tipo Personalizado</label>
+                        <input type="text" id="customProductType" class="form-control" 
+                               placeholder="Especifica el tipo personalizado" maxlength="50">
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <strong>ℹ️ Información:</strong> El producto se creará en la primera etapa activa del sistema.
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="this.closest('.modal').remove()">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Crear Producto</button>
+                    </div>
+                </form>
+            </div>
+        `);
+        
+        // Manejar cambio en el select de tipo de producto
+        const typeSelect = modal.querySelector('#newProductType');
+        const customTypeGroup = modal.querySelector('#customTypeGroup');
+        const customTypeInput = modal.querySelector('#customProductType');
+        
+        typeSelect.addEventListener('change', function() {
+            if (this.value === 'OTHER') {
+                customTypeGroup.style.display = 'block';
+                customTypeInput.required = true;
+            } else {
+                customTypeGroup.style.display = 'none';
+                customTypeInput.required = false;
+                customTypeInput.value = '';
+            }
+        });
+        
+        // Manejar envío del formulario
+        const form = modal.querySelector('#createProductForm');
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.createNewProduct(modal);
+        });
+        
+        // Agregar el modal al DOM
+        document.body.appendChild(modal);
+    }
+    
+    createNewProduct(modal) {
+        const formData = {
+            barcode: modal.querySelector('#newProductBarcode').value.trim(),
+            product_name: modal.querySelector('#newProductName').value.trim(),
+            product_type: modal.querySelector('#newProductType').value === 'OTHER' 
+                         ? modal.querySelector('#customProductType').value.trim()
+                         : modal.querySelector('#newProductType').value
+        };
+        
+        // Validaciones
+        if (!formData.barcode || !formData.product_name || !formData.product_type) {
+            this.showNotification('Todos los campos obligatorios deben estar completos', 'error');
+            return;
+        }
+        
+        // Confirmar creación
+        if (!confirm(`¿Confirmas la creación del producto "${formData.product_name}" con código "${formData.barcode}"?`)) {
+            return;
+        }
+        
+        this.showNotification('Creando producto...', 'info');
+        
+        fetch('/api/data/create-product', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                this.showNotification('Producto creado correctamente', 'success');
+                modal.remove();
                 setTimeout(() => this.loadData(), 1000);
             } else {
                 this.showNotification('Error: ' + result.message, 'error');
@@ -1249,9 +1495,6 @@ class JCIDashboard {
         .catch(error => {
             this.showNotification('Error de conexión: ' + error.message, 'error');
         });
-        
-        // Limpiar input
-        event.target.value = '';
     }
     
     showDataStructure() {
@@ -2201,6 +2444,24 @@ function handleFileUpload(event) {
 
 function showDataStructure() {
     if (dashboard) dashboard.showDataStructure();
+}
+
+function showCreateProductModal() {
+    console.log('showCreateProductModal called, dashboard:', dashboard);
+    if (dashboard) {
+        dashboard.showCreateProductModal();
+    } else {
+        console.error('Dashboard not initialized');
+    }
+}
+
+function showImportModeModal() {
+    console.log('showImportModeModal called, dashboard:', dashboard);
+    if (dashboard) {
+        dashboard.showImportModeModal();
+    } else {
+        console.error('Dashboard not initialized');
+    }
 }
 
 function changeShift(shift) {

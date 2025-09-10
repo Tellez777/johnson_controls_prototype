@@ -156,10 +156,13 @@ class StationManager {
             setTimeout(() => barcodeInput.focus(), 100);
         });
 
-        // Filtros
-        document.getElementById('priority-filter').addEventListener('change', () => {
-            this.filterProducts();
-        });
+        // Filtros (solo si existe el elemento)
+        const priorityFilter = document.getElementById('priority-filter');
+        if (priorityFilter) {
+            priorityFilter.addEventListener('change', () => {
+                this.filterProducts();
+            });
+        }
     }
 
     async processManualScan() {
@@ -281,7 +284,8 @@ class StationManager {
     }
 
     filterProducts() {
-        const priorityFilter = document.getElementById('priority-filter').value;
+        const priorityFilterElement = document.getElementById('priority-filter');
+        const priorityFilter = priorityFilterElement ? priorityFilterElement.value : 'all';
         
         let filteredProducts = [...this.productsInStage];
         

@@ -1396,3 +1396,140 @@ body {
     color: #666;
     font-style: italic;
 }
+/* === IMPORT/EXPORT MODALS === */
+
+.import-mode-selection .mode-options {
+    margin: 1rem 0;
+}
+
+.option-card {
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 1rem 0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.option-card:hover {
+    border-color: var(--jci-primary);
+    box-shadow: var(--shadow-md);
+}
+
+.option-card.danger {
+    border-color: #E53E3E;
+}
+
+.option-card.danger:hover {
+    border-color: #C53030;
+    background-color: #FED7D7;
+}
+
+.option-header h5 {
+    margin: 0 0 0.5rem 0;
+    color: var(--text-primary);
+}
+
+.option-description {
+    color: var(--text-secondary);
+}
+
+.option-description ul {
+    margin: 0.5rem 0 0 1rem;
+    padding: 0;
+}
+
+.option-description li {
+    margin: 0.25rem 0;
+    font-size: 0.9rem;
+}
+
+.selected-mode {
+    padding: 1rem;
+    border-radius: 6px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.selected-mode.success {
+    background-color: #C6F6D5;
+    border: 1px solid #68D391;
+    color: #2F855A;
+}
+
+.selected-mode.danger {
+    background-color: #FED7D7;
+    border: 1px solid #FC8181;
+    color: #C53030;
+}
+
+.create-product-form .form-group {
+    margin: 1rem 0;
+}
+
+.create-product-form label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.create-product-form .form-control {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 1rem;
+}
+
+.create-product-form .form-control:focus {
+    outline: none;
+    border-color: var(--jci-primary);
+    box-shadow: 0 0 0 2px rgba(0, 184, 224, 0.2);
+}
+
+.form-text {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+}
+
+.btn-secondary {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background: var(--bg-section);
+    border-color: var(--border-hover);
+}
+
+.btn-primary {
+    background: var(--gradient-primary);
+    color: white;
+    border: none;
+}
+
+.btn-primary:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(0, 184, 224, 0.35);
+}
+
+.alert {
+    padding: 1rem;
+    border-radius: 6px;
+    margin: 1rem 0;
+}
+
+.alert-warning {
+    background-color: #FFF3CD;
+    border: 1px solid #FFEAA7;
+    color: #856404;
+}
+
+.alert-info {
+    background-color: #D1ECF1;
+    border: 1px solid #BEE5EB;
+    color: #0C5460;
+}

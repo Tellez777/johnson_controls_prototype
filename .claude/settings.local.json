@@ -9,7 +9,8 @@
       "Bash(taskkill:*)",
       "Bash(timeout:*)",
       "WebFetch(domain:localhost)",
-      "Bash(start http://localhost:5000)"
+      "Bash(start http://localhost:5000)",
+      "Bash(del add_product_to_excel.py)"
     ],
     "deny": [],
     "ask": []
